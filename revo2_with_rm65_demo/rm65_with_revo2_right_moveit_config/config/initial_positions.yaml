@@ -1,0 +1,18 @@
+# Default initial positions for rm_65_revo2_right's ros2_control fake system
+
+initial_positions:
+  # RM65 机械臂关节初始位置
+  joint1: 0
+  joint2: 0
+  joint3: 0
+  joint4: 0
+  joint5: 0
+  joint6: 0
+  
+  # Revo2 灵巧手关节初始位置 - 所有6个主要关节
+  right_thumb_metacarpal_joint: 0   # 拇指掌骨关节
+  right_thumb_proximal_joint: 0     # 拇指近端关节
+  right_index_proximal_joint: 0     # 食指近端关节
+  right_middle_proximal_joint: 0    # 中指近端关节
+  right_ring_proximal_joint: 0      # 无名指近端关节
+  right_pinky_proximal_joint: 0     # 小指近端关节

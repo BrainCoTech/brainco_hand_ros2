@@ -1,0 +1,34 @@
+# MoveIt uses this configuration for controller management
+
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - rm_group_controller
+    - revo2_hand_controller  # 合并所有灵巧手关节到单个控制器
+
+  # RM65 机械臂控制器
+  rm_group_controller:
+    type: FollowJointTrajectory
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+      - joint5
+      - joint6
+    action_ns: follow_joint_trajectory
+    default: true
+  
+  # Revo2 灵巧手统一控制器 - 控制所有6个主要关节
+  revo2_hand_controller:
+    type: FollowJointTrajectory
+    joints:
+      - right_thumb_metacarpal_joint  # 拇指掌骨关节
+      - right_thumb_proximal_joint    # 拇指近端关节
+      - right_index_proximal_joint    # 食指近端关节
+      - right_middle_proximal_joint   # 中指近端关节
+      - right_ring_proximal_joint     # 无名指近端关节
+      - right_pinky_proximal_joint    # 小指近端关节
+    action_ns: follow_joint_trajectory
+    default: true

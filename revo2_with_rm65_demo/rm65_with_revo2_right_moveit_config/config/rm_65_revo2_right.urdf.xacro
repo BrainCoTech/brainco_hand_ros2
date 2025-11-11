@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="rm_65_revo2_right">
+    <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
+
+    <!-- Import rm_65_revo2_right urdf file -->
+    <xacro:include filename="$(find gazebo_rm_65_6f_with_revo2_demo)/urdf/rm_65_with_revo2_right.xacro" />
+
+    <!-- Import control_xacro -->
+    <xacro:include filename="rm_65_revo2_right.ros2_control.xacro" />
+
+
+    <xacro:rm_65_revo2_right_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+
+</robot>

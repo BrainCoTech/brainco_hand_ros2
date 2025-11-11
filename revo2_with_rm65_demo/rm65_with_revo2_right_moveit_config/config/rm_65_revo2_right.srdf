@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot name="rm_65_revo2_right">
+<!-- <robot name="rm_65_revo2_description_gz"> -->
+    <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
+    <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
+    <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
+    <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
+    <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
+    <group name="rm65">
+        <joint name="virtual_joint"/>
+        <joint name="joint1"/>
+        <joint name="joint2"/>
+        <joint name="joint3"/>
+        <joint name="joint4"/>
+        <joint name="joint5"/>
+        <joint name="joint6"/>
+    </group>
+    <!-- 统一的灵巧手运动组 - 包含所有手指 -->
+    <group name="revo2_hand">
+        <link name="right_base_link"/>
+        <!-- 拇指链接 -->
+        <link name="right_thumb_metacarpal_link"/>
+        <link name="right_thumb_proximal_link"/>
+        <link name="right_thumb_distal_link"/>
+        <!-- 食指链接 -->
+        <link name="right_index_proximal_link"/>
+        <link name="right_index_distal_link"/>
+        <!-- 中指链接 -->
+        <link name="right_middle_proximal_link"/>
+        <link name="right_middle_distal_link"/>
+        <!-- 无名指链接 -->
+        <link name="right_ring_proximal_link"/>
+        <link name="right_ring_distal_link"/>
+        <!-- 小指链接 -->
+        <link name="right_pinky_proximal_link"/>
+        <link name="right_pinky_distal_link"/>
+    </group>
+    
+    <group_state name="hand_open" group="revo2_hand">
+        <joint name="right_thumb_metacarpal_joint" value="0"/>
+        <joint name="right_thumb_proximal_joint" value="0"/>
+        <joint name="right_index_proximal_joint" value="0"/>
+        <joint name="right_middle_proximal_joint" value="0"/>
+        <joint name="right_ring_proximal_joint" value="0"/>
+        <joint name="right_pinky_proximal_joint" value="0"/>
+    </group_state>
+    <group_state name="hand_half_close" group="revo2_hand">
+        <joint name="right_thumb_metacarpal_joint" value="0.8"/>
+        <joint name="right_thumb_proximal_joint" value="0.8"/>
+        <joint name="right_index_proximal_joint" value="0.5"/>
+        <joint name="right_middle_proximal_joint" value="0.5"/>
+        <joint name="right_ring_proximal_joint" value="0.5"/>
+        <joint name="right_pinky_proximal_joint" value="0.5"/>
+    </group_state>
+
+    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
+    <!-- 统一的灵巧手末端执行器 -->
+    <end_effector name="revo2_hand" parent_link="right_base_link" group="revo2_hand"/>
+
+    <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
+    <virtual_joint name="virtual_joint" type="fixed" parent_frame="world" child_link="base_link"/>
+    <!-- PASSIVE JOINT, Purpose, this element is used to mark joints that are not actuated -->
+    <!-- 注意：这些关节名称必须与 URDF 中的实际关节名称一致，gz_ros2_control 不会添加 _mimic 后缀 -->
+    <passive_joint name="right_thumb_distal_joint" />
+    <passive_joint name="right_index_distal_joint" />
+    <passive_joint name="right_middle_distal_joint" />
+    <passive_joint name="right_ring_distal_joint" />
+    <passive_joint name="right_pinky_distal_joint" />
+
+    <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
+    <disable_collisions link1="Link1" link2="Link2" reason="Adjacent"/>
+    <disable_collisions link1="Link1" link2="Link3" reason="Never"/>
+    <disable_collisions link1="Link1" link2="Link4" reason="Never"/>
+    <disable_collisions link1="Link1" link2="base_link" reason="Adjacent"/>
+    <disable_collisions link1="Link2" link2="Link3" reason="Adjacent"/>
+    <disable_collisions link1="Link2" link2="Link4" reason="Never"/>
+    <disable_collisions link1="Link2" link2="Link5" reason="Never"/>
+    <disable_collisions link1="Link2" link2="base_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="Link4" reason="Adjacent"/>
+    <disable_collisions link1="Link3" link2="Link5" reason="Never"/>
+    <disable_collisions link1="Link3" link2="Link6" reason="Never"/>
+    <disable_collisions link1="Link3" link2="base_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="right_base_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="right_index_distal_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="right_index_proximal_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="right_index_touch_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="right_thumb_distal_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="Link3" link2="right_thumb_touch_link" reason="Never"/>
+    <disable_collisions link1="Link4" link2="Link5" reason="Adjacent"/>
+    <disable_collisions link1="Link4" link2="Link6" reason="Never"/>
+    <disable_collisions link1="Link4" link2="right_base_link" reason="Never"/>
+    <disable_collisions link1="Link4" link2="right_index_distal_link" reason="Never"/>
+    <disable_collisions link1="Link4" link2="right_index_proximal_link" reason="Never"/>
+    <disable_collisions link1="Link4" link2="right_index_touch_link" reason="Never"/>
+    <disable_collisions link1="Link4" link2="right_thumb_distal_link" reason="Never"/>
+    <disable_collisions link1="Link4" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="Link4" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="Link4" link2="right_thumb_touch_link" reason="Never"/>
+    <disable_collisions link1="Link5" link2="Link6" reason="Adjacent"/>
+    <disable_collisions link1="Link5" link2="right_base_link" reason="Never"/>
+    <disable_collisions link1="Link5" link2="right_index_distal_link" reason="Never"/>
+    <disable_collisions link1="Link5" link2="right_index_proximal_link" reason="Never"/>
+    <disable_collisions link1="Link5" link2="right_index_touch_link" reason="Never"/>
+    <disable_collisions link1="Link5" link2="right_thumb_distal_link" reason="Never"/>
+    <disable_collisions link1="Link5" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="Link5" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="Link5" link2="right_thumb_touch_link" reason="Never"/>
+    <disable_collisions link1="Link6" link2="right_base_link" reason="Adjacent"/>
+    <disable_collisions link1="Link6" link2="right_index_distal_link" reason="Never"/>
+    <disable_collisions link1="Link6" link2="right_index_proximal_link" reason="Never"/>
+    <disable_collisions link1="Link6" link2="right_index_touch_link" reason="Never"/>
+    <disable_collisions link1="Link6" link2="right_thumb_distal_link" reason="Never"/>
+    <disable_collisions link1="Link6" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="Link6" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="Link6" link2="right_thumb_touch_link" reason="Never"/>
+    <disable_collisions link1="right_base_link" link2="right_index_distal_link" reason="Never"/>
+    <disable_collisions link1="right_base_link" link2="right_index_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_base_link" link2="right_index_touch_link" reason="Never"/>
+    <disable_collisions link1="right_base_link" link2="right_thumb_distal_link" reason="Never"/>
+    <disable_collisions link1="right_base_link" link2="right_thumb_metacarpal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_base_link" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_base_link" link2="right_thumb_touch_link" reason="Never"/>
+    <disable_collisions link1="right_index_distal_link" link2="right_index_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_index_distal_link" link2="right_index_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_index_distal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_index_proximal_link" link2="right_index_touch_link" reason="Never"/>
+    <disable_collisions link1="right_index_proximal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_index_proximal_link" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_index_touch_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+
+    <!-- Middle finger collision rules -->
+    <disable_collisions link1="right_base_link" link2="right_middle_distal_link" reason="Never"/>
+    <disable_collisions link1="right_base_link" link2="right_middle_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_base_link" link2="right_middle_touch_link" reason="Never"/>
+    <disable_collisions link1="right_middle_distal_link" link2="right_middle_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_distal_link" link2="right_middle_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_proximal_link" link2="right_middle_touch_link" reason="Never"/>
+    <!-- Middle finger cross-collisions with other fingers -->
+    <disable_collisions link1="right_middle_proximal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_middle_proximal_link" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_middle_proximal_link" link2="right_index_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_middle_proximal_link" link2="right_ring_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_proximal_link" link2="right_pinky_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_middle_touch_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_middle_touch_link" link2="right_index_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_touch_link" link2="right_ring_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_touch_link" link2="right_pinky_touch_link" reason="Never"/>
+    <disable_collisions link1="right_middle_distal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_middle_distal_link" link2="right_index_distal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_distal_link" link2="right_ring_distal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_middle_distal_link" link2="right_pinky_distal_link" reason="Never"/>
+
+    <!-- Ring finger collision rules -->
+    <disable_collisions link1="right_base_link" link2="right_ring_distal_link" reason="Never"/>
+    <disable_collisions link1="right_base_link" link2="right_ring_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_base_link" link2="right_ring_touch_link" reason="Never"/>
+    <disable_collisions link1="right_ring_distal_link" link2="right_ring_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_distal_link" link2="right_ring_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_proximal_link" link2="right_ring_touch_link" reason="Never"/>
+    <!-- Ring finger cross-collisions with other fingers -->
+    <disable_collisions link1="right_ring_proximal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_ring_proximal_link" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_ring_proximal_link" link2="right_index_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_ring_proximal_link" link2="right_middle_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_proximal_link" link2="right_pinky_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_touch_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_ring_touch_link" link2="right_index_touch_link" reason="Never"/>
+    <disable_collisions link1="right_ring_touch_link" link2="right_middle_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_touch_link" link2="right_pinky_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_distal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_ring_distal_link" link2="right_index_distal_link" reason="Never"/>
+    <disable_collisions link1="right_ring_distal_link" link2="right_middle_distal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_ring_distal_link" link2="right_pinky_distal_link" reason="Adjacent"/>
+
+    <!-- Pinky finger collision rules -->
+    <disable_collisions link1="right_base_link" link2="right_pinky_distal_link" reason="Never"/>
+    <disable_collisions link1="right_base_link" link2="right_pinky_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_base_link" link2="right_pinky_touch_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_distal_link" link2="right_pinky_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_pinky_distal_link" link2="right_pinky_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_pinky_proximal_link" link2="right_pinky_touch_link" reason="Never"/>
+    <!-- Pinky finger cross-collisions with other fingers -->
+    <disable_collisions link1="right_pinky_proximal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_proximal_link" link2="right_thumb_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_proximal_link" link2="right_index_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_proximal_link" link2="right_middle_proximal_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_proximal_link" link2="right_ring_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_pinky_touch_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_touch_link" link2="right_index_touch_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_touch_link" link2="right_middle_touch_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_touch_link" link2="right_ring_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_pinky_distal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_distal_link" link2="right_index_distal_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_distal_link" link2="right_middle_distal_link" reason="Never"/>
+    <disable_collisions link1="right_pinky_distal_link" link2="right_ring_distal_link" reason="Adjacent"/>
+    <!-- 拇指碰撞规则 -->
+    <disable_collisions link1="right_thumb_distal_link" link2="right_thumb_metacarpal_link" reason="Never"/>
+    <disable_collisions link1="right_thumb_distal_link" link2="right_thumb_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_thumb_distal_link" link2="right_thumb_touch_link" reason="Adjacent"/>
+    <disable_collisions link1="right_thumb_metacarpal_link" link2="right_thumb_proximal_link" reason="Adjacent"/>
+    <disable_collisions link1="right_thumb_metacarpal_link" link2="right_thumb_touch_link" reason="Never"/>
+    <disable_collisions link1="right_thumb_proximal_link" link2="right_thumb_touch_link" reason="Never"/>
+</robot>

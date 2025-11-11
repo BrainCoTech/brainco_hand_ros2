@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: rm65_with_revo2_right_moveit_config
+    relative_path: config/rm_65_revo2_right.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/rm_65_revo2_right.srdf
+  CONFIG:
+    author_name: BrainCo
+    author_email: support@brainco.com
+    generated_timestamp: 1735573261

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot  name="rm_65_revo2_right" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Include the base rm_65 arm (from this package) -->
+  <xacro:include filename="$(find gazebo_rm_65_6f_with_revo2_demo)/urdf/rm_65_gazebo.urdf.xacro" />
+
+  <!-- Include Revo2 Right Hand (from revo2_description) -->
+  <xacro:include filename="$(find revo2_description)/urdf/revo2_right_hand.urdf.xacro" />
+
+  <!-- Instantiate the right hand model -->
+  <xacro:revo2_right_hand />
+
+  <!-- Connect revo2 base to rm_65 Link6 -->
+  <joint name="rm65_to_revo2_joint" type="fixed">
+    <origin xyz="0 0 0.0" rpy="0 0 0" />
+    <parent link="Link6" />
+    <child link="right_base_link" />
+  </joint>
+
+</robot>
+
+

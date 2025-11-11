@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>gazebo_rm_65_6f_with_revo2_demo</name>
+  <version>1.0.0</version>
+  <description>Gazebo simulation demo package integrating RM65-6F robotic arm with BrainCo Revo2 dexterous hands</description>
+  <maintainer email="taoguang.dai@brainco.cn">daitg</maintainer>
+  <license>Apache 2.0</license>
+  <url type="website">https://www.brainco-hz.com/docs/revolimb-hand/</url>
+  <url type="repository">https://github.com/BrainCoTech/brainco_hand_ros2</url>
+  <url type="bugtracker">https://github.com/BrainCoTech/brainco_hand_ros2/issues</url>
+  <author email="taoguang.dai@brainco.cn">daitg</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Core ROS2 packages -->
+  <depend>rclpy</depend>
+  
+  <!-- Gazebo Sim dependencies -->
+  <depend>ros_gz_bridge</depend>
+  <depend>ros_gz_sim</depend>
+  
+  <!-- Robot control dependencies -->
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>gz_ros2_control</exec_depend>
+  <exec_depend>ros2_control</exec_depend>
+  <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>revo2_description</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <gazebo_ros gazebo_model_path="${prefix}"/>
+  </export>
+</package>

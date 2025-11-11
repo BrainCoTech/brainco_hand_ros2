@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="rm_65_revo2_description_gz">
+
+    <!-- Used for fixing robot to Gazebo 'base_link' 将机械手的基座固定在世界坐标上-->
+    <link name="world"/>
+    <joint name="fixed" type="fixed">
+        <parent link="world"/>
+        <child link="base_link"/>
+    </joint>
+
+    <!-- Import rm_65 with revo2 integrated urdf file (RIGHT hand, split from revo2_description) -->
+    <xacro:include filename="$(find gazebo_rm_65_6f_with_revo2_demo)/urdf/rm_65_with_revo2_right.xacro" />
+
+
+    <!-- 声明ros2_control (gz_ros2_control) 并为从动关节设置 mimic 参数 -->
+    <ros2_control name="GazeboSimSystem" type="system">
+        <hardware>
+            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </hardware>
+
+        <!-- RM65 Arm Joints -->
+        <joint name="joint1">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="joint2">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="joint3">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="joint4">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="joint5">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="joint6">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <!-- revo2 Hand - 主动关节（控制器直接控制） -->
+        <joint name="right_thumb_metacarpal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_thumb_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position">
+            <!-- TODO 初始值为0.1，运动到0会出现关节卡死的情况 -->
+                <param name="initial_value">0.1</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_index_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_middle_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_ring_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_pinky_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position">
+                <param name="initial_value">0</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <!-- revo2 Hand - mimic从动关节（以 revo2_description 最新参数为准） -->
+        <joint name="right_thumb_distal_joint">
+            <param name="mimic">right_thumb_proximal_joint</param>
+            <param name="multiplier">1</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="right_index_distal_joint">
+            <param name="mimic">right_index_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="right_middle_distal_joint">
+            <param name="mimic">right_middle_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="right_ring_distal_joint">
+            <param name="mimic">right_ring_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="right_pinky_distal_joint">
+            <param name="mimic">right_pinky_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+    </ros2_control>
+
+    <!-- 加载 gz_ros2_control 插件（解析 ros2_control 并加载控制器） -->
+    <gazebo>
+        <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <parameters>$(find gazebo_rm_65_6f_with_revo2_demo)/config/revo2_controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+</robot>
+
+

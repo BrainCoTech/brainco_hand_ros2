@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="rm_65_revo2_right_ros2_control" params="name initial_positions_file">
+        <!-- <xacro:property name="initial_positions" value="${load_yaml(initial_positions_file)['initial_positions']}"/> -->
+        <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
+
+        <ros2_control name="${name}" type="system">
+            <hardware>
+                <!-- By default, set up controllers for simulation. This won't work on real hardware -->
+                <plugin>mock_components/GenericSystem</plugin>
+            </hardware>
+            <joint name="joint1">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['joint1']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="joint2">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['joint2']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="joint3">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['joint3']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="joint4">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['joint4']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="joint5">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['joint5']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="joint6">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['joint6']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <!-- Revo2 灵巧手关节定义 - 所有6个主要关节 -->
+            <!-- 拇指关节 -->
+            <joint name="right_thumb_metacarpal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_thumb_metacarpal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="right_thumb_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_thumb_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            
+            <!-- 食指关节 -->
+            <joint name="right_index_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_index_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            
+            <!-- 中指关节 -->
+            <joint name="right_middle_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_middle_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            
+            <!-- 无名指关节 -->
+            <joint name="right_ring_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_ring_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+            
+            <!-- 小指关节 -->
+            <joint name="right_pinky_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_pinky_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+            </joint>
+
+        </ros2_control>
+    </xacro:macro>
+</robot>
