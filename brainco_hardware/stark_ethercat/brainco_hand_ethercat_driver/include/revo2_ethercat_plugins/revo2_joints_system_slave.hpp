@@ -38,8 +38,8 @@ public:
 private:
   // 常量定义
   static constexpr size_t NUM_FINGER_MOTORS = 6;
-  static constexpr uint8_t SINGLE_MODE_POSITION_TIME = 1;    // 位置+时间控制
-  static constexpr uint16_t MULTI_MODE_POSITION_TIME = 1;    // 多指：位置+时间控制
+  static constexpr uint8_t SINGLE_MODE_POSITION_TIME = 1;  // 位置+时间控制
+  static constexpr uint16_t MULTI_MODE_POSITION_TIME = 1;  // 多指：位置+时间控制
   static constexpr uint16_t CTRL_PARAM_DURATION_MS = 100;  // 默认运动时间
 
   // 控制模式枚举
@@ -66,7 +66,7 @@ private:
     "middle_joint",     "ring_joint",         "pinky_joint"};
 
   // 配置参数
-  uint16_t ctrl_param_duration_ms_;    // 默认运动时间
+  uint16_t ctrl_param_duration_ms_;      // 默认运动时间
   uint32_t assign_activate_;             // DC同步配置
   RxPdoControlMode rxpdo_control_mode_;  // 控制模式：多指/单指
 

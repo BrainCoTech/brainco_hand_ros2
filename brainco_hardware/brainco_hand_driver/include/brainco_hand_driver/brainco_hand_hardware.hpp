@@ -64,7 +64,8 @@ private:
   auto validate_joints() const -> hardware_interface::CallbackReturn;
   static auto parse_log_level(const std::string & level_str) -> BraincoLogLevel;
   static auto parse_bool(const std::string & value, bool default_value) -> bool;
-  auto get_parameter(const std::string & key, const std::string & default_value) const -> std::string;
+  auto get_parameter(const std::string & key, const std::string & default_value) const
+    -> std::string;
 
   DriverConfig config_{};
   std::optional<BraincoHandApi::ConnectionInfo> resolved_connection_;
@@ -79,5 +80,3 @@ private:
 };
 
 }  // namespace brainco_hand_driver
-
-

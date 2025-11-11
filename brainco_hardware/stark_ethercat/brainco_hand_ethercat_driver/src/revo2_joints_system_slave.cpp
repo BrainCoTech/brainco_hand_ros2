@@ -77,8 +77,8 @@ bool Revo2JointsSystemSlave::setupSlave(
   }
 
   REVO2_LOG_INFO(
-    "Default ctrl_param_duration_ms_: %u ms, Assign Activate: 0x%04X, Control Mode: %s", ctrl_param_duration_ms_,
-    assign_activate_,
+    "Default ctrl_param_duration_ms_: %u ms, Assign Activate: 0x%04X, Control Mode: %s",
+    ctrl_param_duration_ms_, assign_activate_,
     (rxpdo_control_mode_ == MULTI_FINGER_MODE) ? "Multi-Finger" : "Single-Finger");
 
   // 首先进行设备检测，确定设备类型
@@ -145,20 +145,20 @@ bool Revo2JointsSystemSlave::setupSlave(
   // XXX 重新上电生效
   sdo_config.clear();
   {
-      using stark_ethercat_interface::SdoConfigEntry;
-      SdoConfigEntry unit_mode;
-      unit_mode.index = 0x8000;           // config_param
-      unit_mode.sub_index = 0x05;         // unit_mode
-      unit_mode.data_type = "uint8";
-      unit_mode.data = 1;                 // 1 = 物理量
-      sdo_config.push_back(unit_mode);
+    using stark_ethercat_interface::SdoConfigEntry;
+    SdoConfigEntry unit_mode;
+    unit_mode.index = 0x8000;    // config_param
+    unit_mode.sub_index = 0x05;  // unit_mode
+    unit_mode.data_type = "uint8";
+    unit_mode.data = 1;  // 1 = 物理量
+    sdo_config.push_back(unit_mode);
 
-      SdoConfigEntry led_switch;
-      led_switch.index = 0x8000;           // config_param
-      led_switch.sub_index = 0x02;         // led_switch
-      led_switch.data_type = "uint8";
-      led_switch.data = 1;                 // 1 = 开
-      sdo_config.push_back(led_switch);
+    SdoConfigEntry led_switch;
+    led_switch.index = 0x8000;    // config_param
+    led_switch.sub_index = 0x02;  // led_switch
+    led_switch.data_type = "uint8";
+    led_switch.data = 1;  // 1 = 开
+    sdo_config.push_back(led_switch);
   }
 
   REVO2_LOG_INFO("Revo2 Joints System Slave setup completed");

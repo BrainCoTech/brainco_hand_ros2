@@ -94,10 +94,7 @@ auto brainco_log_level_to_string(BraincoLogLevel level) -> std::string
 class SessionBase : public BraincoHandApi::TransportSession
 {
 public:
-  explicit SessionBase(BraincoHandApi::DriverConfig & config)
-  : config_(config)
-  {
-  }
+  explicit SessionBase(BraincoHandApi::DriverConfig & config) : config_(config) {}
 
   bool fetch_device_info(uint8_t slave_id, BraincoHandApi::DeviceInfoData & info) const override
   {
@@ -117,7 +114,8 @@ public:
     info.sku_type = static_cast<uint8_t>(device_info->sku_type);
     info.hardware_type = static_cast<uint8_t>(device_info->hardware_type);
     info.serial_number = device_info->serial_number ? device_info->serial_number : std::string{};
-    info.firmware_version = device_info->firmware_version ? device_info->firmware_version : std::string{};
+    info.firmware_version =
+      device_info->firmware_version ? device_info->firmware_version : std::string{};
     return true;
   }
 
@@ -165,9 +163,7 @@ public:
   }
 
   bool set_finger_positions_and_durations(
-    uint8_t slave_id,
-    const uint16_t * positions,
-    const uint16_t * durations,
+    uint8_t slave_id, const uint16_t * positions, const uint16_t * durations,
     std::size_t count) override
   {
     if (!handler_ || !positions || !durations || count == 0)
@@ -175,26 +171,16 @@ public:
       return false;
     }
 
-    ::stark_set_finger_positions_and_durations(
-      handler_, slave_id, positions, durations, count);
+    ::stark_set_finger_positions_and_durations(handler_, slave_id, positions, durations, count);
     return true;
   }
 
 protected:
-  void set_handler(DeviceHandler * handler)
-  {
-    handler_ = handler;
-  }
+  void set_handler(DeviceHandler * handler) { handler_ = handler; }
 
-  void clear_handler()
-  {
-    handler_ = nullptr;
-  }
+  void clear_handler() { handler_ = nullptr; }
 
-  [[nodiscard]] DeviceHandler * handler() const
-  {
-    return handler_;
-  }
+  [[nodiscard]] DeviceHandler * handler() const { return handler_; }
 
   BraincoHandApi::DriverConfig & config_;
 
@@ -219,7 +205,8 @@ public:
 
     if (config_.modbus.auto_detect)
     {
-      const char * hint = config_.modbus.auto_detect_port.empty() ? nullptr : config_.modbus.auto_detect_port.c_str();
+      const char * hint =
+        config_.modbus.auto_detect_port.empty() ? nullptr : config_.modbus.auto_detect_port.c_str();
       DeviceConfigPtr detected{::auto_detect_modbus_revo2(hint, config_.modbus.auto_detect_quick)};
       if (!detected)
       {
@@ -259,10 +246,7 @@ public:
     resolved_connection_.reset();
   }
 
-  [[nodiscard]] bool is_open() const override
-  {
-    return static_cast<bool>(handle_);
-  }
+  [[nodiscard]] bool is_open() const override { return static_cast<bool>(handle_); }
 
   [[nodiscard]] std::optional<BraincoHandApi::ConnectionInfo> connection_info() const override
   {
@@ -298,8 +282,9 @@ public:
     const auto & canfd = config_.canfd;
     if (!VCI_OpenDevice(canfd.device_type, canfd.card_index, canfd.channel_index))
     {
-      BRAINCO_HAND_LOG_ERROR("VCI_OpenDevice failed (type=%u card=%u channel=%u)",
-        canfd.device_type, canfd.card_index, canfd.channel_index);
+      BRAINCO_HAND_LOG_ERROR(
+        "VCI_OpenDevice failed (type=%u card=%u channel=%u)", canfd.device_type, canfd.card_index,
+        canfd.channel_index);
       return false;
     }
 
@@ -360,8 +345,8 @@ public:
   void close() override
   {
     CanfdSession * expected = this;
-    const bool cleared = active_instance_.compare_exchange_strong(
-      expected, nullptr, std::memory_order_acq_rel);
+    const bool cleared =
+      active_instance_.compare_exchange_strong(expected, nullptr, std::memory_order_acq_rel);
     if (cleared)
     {
       set_can_tx_callback(&CanfdSession::noop_tx_callback);
@@ -399,7 +384,8 @@ public:
 private:
   using CanfdHandlePtr = std::unique_ptr<DeviceHandler, decltype(&::free_device_handler)>;
 
-  static int32_t tx_callback(uint8_t slave_id, uint32_t can_id, const uint8_t * data, uintptr_t data_len)
+  static int32_t tx_callback(
+    uint8_t slave_id, uint32_t can_id, const uint8_t * data, uintptr_t data_len)
   {
     auto * session = active_instance_.load(std::memory_order_acquire);
     if (!session)
@@ -409,7 +395,8 @@ private:
     return session->handle_tx(slave_id, can_id, data, data_len);
   }
 
-  static int32_t rx_callback(uint8_t slave_id, uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
+  static int32_t rx_callback(
+    uint8_t slave_id, uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
   {
     auto * session = active_instance_.load(std::memory_order_acquire);
     if (!session)
@@ -419,15 +406,9 @@ private:
     return session->handle_rx(slave_id, can_id_out, data_out, data_len_out);
   }
 
-  static int32_t noop_tx_callback(uint8_t, uint32_t, const uint8_t *, uintptr_t)
-  {
-    return -1;
-  }
+  static int32_t noop_tx_callback(uint8_t, uint32_t, const uint8_t *, uintptr_t) { return -1; }
 
-  static int32_t noop_rx_callback(uint8_t, uint32_t *, uint8_t *, uintptr_t *)
-  {
-    return -1;
-  }
+  static int32_t noop_rx_callback(uint8_t, uint32_t *, uint8_t *, uintptr_t *) { return -1; }
 
   int32_t handle_tx(uint8_t slave_id, uint32_t can_id, const uint8_t * data, uintptr_t data_len)
   {
@@ -446,7 +427,8 @@ private:
     message.hdr.inf.brs = 1;
     message.hdr.id = can_id;
     message.hdr.chn = static_cast<uint8_t>(config_.canfd.channel_index);
-    const auto length = static_cast<uint8_t>(std::min<uintptr_t>(data_len, static_cast<uintptr_t>(64)));
+    const auto length =
+      static_cast<uint8_t>(std::min<uintptr_t>(data_len, static_cast<uintptr_t>(64)));
     message.hdr.len = length;
     for (uint8_t index = 0; index < length; ++index)
     {
@@ -454,16 +436,14 @@ private:
     }
 
     const auto result = VCI_TransmitFD(
-      config_.canfd.device_type,
-      config_.canfd.card_index,
-      config_.canfd.channel_index,
-      &message,
+      config_.canfd.device_type, config_.canfd.card_index, config_.canfd.channel_index, &message,
       1);
 
     return result == 1 ? 0 : -1;
   }
 
-  int32_t handle_rx(uint8_t slave_id, uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
+  int32_t handle_rx(
+    uint8_t slave_id, uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
   {
     (void)slave_id;
     if (!can_id_out || !data_out || !data_len_out)
@@ -478,12 +458,8 @@ private:
     }
 
     const auto received = VCI_ReceiveFD(
-      config_.canfd.device_type,
-      config_.canfd.card_index,
-      config_.canfd.channel_index,
-      rx_buffer_.data(),
-      static_cast<uint32_t>(rx_buffer_.size()),
-      config_.canfd.rx_wait_time);
+      config_.canfd.device_type, config_.canfd.card_index, config_.canfd.channel_index,
+      rx_buffer_.data(), static_cast<uint32_t>(rx_buffer_.size()), config_.canfd.rx_wait_time);
 
     if (received < 1)
     {
@@ -491,8 +467,8 @@ private:
     }
 
     const auto & frame = rx_buffer_.front();
-    const auto payload_len = static_cast<uint8_t>(std::min<uintptr_t>(
-      static_cast<uintptr_t>(frame.hdr.len), static_cast<uintptr_t>(64)));
+    const auto payload_len = static_cast<uint8_t>(
+      std::min<uintptr_t>(static_cast<uintptr_t>(frame.hdr.len), static_cast<uintptr_t>(64)));
     *can_id_out = frame.hdr.id;
     *data_len_out = payload_len;
     for (uint8_t index = 0; index < payload_len; ++index)
@@ -532,14 +508,9 @@ struct BraincoHandApi::Impl
   }
 };
 
-BraincoHandApi::BraincoHandApi()
-: impl_(std::make_unique<Impl>())
-{
-  configure(DriverConfig{});
-}
+BraincoHandApi::BraincoHandApi() : impl_(std::make_unique<Impl>()) { configure(DriverConfig{}); }
 
-BraincoHandApi::BraincoHandApi(const DriverConfig & config)
-: impl_(std::make_unique<Impl>())
+BraincoHandApi::BraincoHandApi(const DriverConfig & config) : impl_(std::make_unique<Impl>())
 {
   configure(config);
 }
@@ -556,8 +527,8 @@ auto BraincoHandApi::configure(const DriverConfig & config) -> void
   close();
   impl_->config = config;
 
-  const auto protocol_type = (config.protocol == Protocol::kCanfd) ?
-    STARK_PROTOCOL_TYPE_CAN_FD : STARK_PROTOCOL_TYPE_MODBUS;
+  const auto protocol_type =
+    (config.protocol == Protocol::kCanfd) ? STARK_PROTOCOL_TYPE_CAN_FD : STARK_PROTOCOL_TYPE_MODBUS;
 
   ::init_cfg(protocol_type, to_sdk_log_level(config.log_level));
   impl_->rebuild_session();
@@ -617,10 +588,8 @@ auto BraincoHandApi::get_motor_status(uint8_t slave_id) const -> std::optional<M
 }
 
 auto BraincoHandApi::set_finger_positions_and_durations(
-  uint8_t slave_id,
-  const uint16_t * positions,
-  const uint16_t * durations,
-  std::size_t count) -> bool
+  uint8_t slave_id, const uint16_t * positions, const uint16_t * durations, std::size_t count)
+  -> bool
 {
   if (!impl_ || !impl_->session)
   {

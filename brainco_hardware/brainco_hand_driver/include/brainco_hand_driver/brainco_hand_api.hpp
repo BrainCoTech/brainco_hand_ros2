@@ -128,9 +128,7 @@ public:
     virtual bool ensure_physical_unit_mode(uint8_t slave_id) = 0;
     [[nodiscard]] virtual std::optional<MotorStatus> get_motor_status(uint8_t slave_id) const = 0;
     virtual bool set_finger_positions_and_durations(
-      uint8_t slave_id,
-      const uint16_t * positions,
-      const uint16_t * durations,
+      uint8_t slave_id, const uint16_t * positions, const uint16_t * durations,
       std::size_t count) = 0;
   };
 
@@ -156,10 +154,8 @@ public:
   auto get_motor_status(uint8_t slave_id) const -> std::optional<MotorStatus>;
 
   auto set_finger_positions_and_durations(
-    uint8_t slave_id,
-    const uint16_t * positions,
-    const uint16_t * durations,
-    std::size_t count) -> bool;
+    uint8_t slave_id, const uint16_t * positions, const uint16_t * durations, std::size_t count)
+    -> bool;
 
   [[nodiscard]] auto resolved_connection() const -> std::optional<ConnectionInfo>;
 
@@ -169,5 +165,3 @@ private:
 };
 
 }  // namespace brainco_hand_driver
-
-

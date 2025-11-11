@@ -1,8 +1,8 @@
 #include "brainco_hand_driver/brainco_hand_hardware.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <cctype>
+#include <cmath>
 #include <cstddef>
 #include <limits>
 #include <sstream>
@@ -59,11 +59,9 @@ auto BraincoHandHardware::on_init(const hardware_interface::HardwareInfo & info)
   hw_motor_states_.assign(joint_count, 0);
 
   resolved_connection_.reset();
-  const char * protocol_label =
-    config_.transport.protocol == Protocol::kCanfd ? "CANFD" : "MODBUS";
+  const char * protocol_label = config_.transport.protocol == Protocol::kCanfd ? "CANFD" : "MODBUS";
   BRAINCO_HAND_LOG_INFO(
-    "BraincoHandApi prepared, protocol=%s, log_level=%s",
-    protocol_label,
+    "BraincoHandApi prepared, protocol=%s, log_level=%s", protocol_label,
     brainco_log_level_to_string(config_.transport.log_level).c_str());
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -144,10 +142,10 @@ auto BraincoHandHardware::export_state_interfaces()
   for (std::size_t i = 0; i < info_.joints.size(); ++i)
   {
     const auto & joint = info_.joints[i];
-    state_interfaces.emplace_back(
-      hardware_interface::StateInterface(joint.name, hardware_interface::HW_IF_POSITION, &hw_positions_[i]));
-    state_interfaces.emplace_back(
-      hardware_interface::StateInterface(joint.name, hardware_interface::HW_IF_VELOCITY, &hw_velocities_[i]));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      joint.name, hardware_interface::HW_IF_POSITION, &hw_positions_[i]));
+    state_interfaces.emplace_back(hardware_interface::StateInterface(
+      joint.name, hardware_interface::HW_IF_VELOCITY, &hw_velocities_[i]));
   }
 
   return state_interfaces;
@@ -163,8 +161,8 @@ auto BraincoHandHardware::export_command_interfaces()
   for (std::size_t i = 0; i < info_.joints.size(); ++i)
   {
     const auto & joint = info_.joints[i];
-    command_interfaces.emplace_back(
-      hardware_interface::CommandInterface(joint.name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]));
+    command_interfaces.emplace_back(hardware_interface::CommandInterface(
+      joint.name, hardware_interface::HW_IF_POSITION, &hw_commands_[i]));
   }
 
   return command_interfaces;
@@ -257,8 +255,8 @@ auto BraincoHandHardware::write(const rclcpp::Time & time, const rclcpp::Duratio
   for (std::size_t i = 0; i < joint_count; ++i)
   {
     const double desired_device = hw_commands_[i] * config_.position_command_scale;
-    const double clamped = std::clamp(
-      desired_device, config_.position_device_min, config_.position_device_max);
+    const double clamped =
+      std::clamp(desired_device, config_.position_device_min, config_.position_device_max);
     goal_positions[i] = static_cast<uint16_t>(std::lround(clamped));
     goal_durations[i] = config_.ctrl_param_duration_ms;
   }
@@ -285,7 +283,8 @@ auto BraincoHandHardware::write(const rclcpp::Time & time, const rclcpp::Duratio
   if (!api_.set_finger_positions_and_durations(
         config_.transport.slave_id, goal_positions.data(), goal_durations.data(), joint_count))
   {
-    BRAINCO_HAND_LOG_WARN("Failed to send finger positions for slave %u", config_.transport.slave_id);
+    BRAINCO_HAND_LOG_WARN(
+      "Failed to send finger positions for slave %u", config_.transport.slave_id);
     return hardware_interface::return_type::ERROR;
   }
 
@@ -302,9 +301,9 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
   {
     const auto protocol_value = get_parameter("protocol", "modbus");
     std::string protocol_lower = protocol_value;
-    std::transform(protocol_lower.begin(), protocol_lower.end(), protocol_lower.begin(), [](unsigned char ch) {
-      return static_cast<char>(std::tolower(ch));
-    });
+    std::transform(
+      protocol_lower.begin(), protocol_lower.end(), protocol_lower.begin(),
+      [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
 
     if (protocol_lower == "canfd" || protocol_lower == "can" || protocol_lower == "can-fd")
     {
@@ -320,10 +319,8 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
     if (slave_id_value > static_cast<unsigned long>(kMaxSlaveId))
     {
       BRAINCO_HAND_LOG_WARN(
-        "slave_id value %lu exceeds %u, will clamp to %u",
-        slave_id_value,
-        static_cast<unsigned>(kMaxSlaveId),
-        static_cast<unsigned>(kMaxSlaveId));
+        "slave_id value %lu exceeds %u, will clamp to %u", slave_id_value,
+        static_cast<unsigned>(kMaxSlaveId), static_cast<unsigned>(kMaxSlaveId));
       config_.transport.slave_id = kMaxSlaveId;
     }
     else
@@ -332,18 +329,18 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
     }
 
     config_.transport.log_level = parse_log_level(get_parameter("log_level", "info"));
-    config_.transport.ensure_physical_mode = parse_bool(
-      get_parameter("ensure_physical_mode", "true"), true);
+    config_.transport.ensure_physical_mode =
+      parse_bool(get_parameter("ensure_physical_mode", "true"), true);
 
     if (config_.transport.protocol == Protocol::kModbus)
     {
       config_.transport.modbus.port = get_parameter("port", "/dev/ttyUSB0");
-      config_.transport.modbus.baudrate = static_cast<uint32_t>(
-        std::stoul(get_parameter("baudrate", "460800")));
-      config_.transport.modbus.auto_detect = parse_bool(
-        get_parameter("auto_detect", "false"), false);
-      config_.transport.modbus.auto_detect_quick = parse_bool(
-        get_parameter("auto_detect_quick", "true"), true);
+      config_.transport.modbus.baudrate =
+        static_cast<uint32_t>(std::stoul(get_parameter("baudrate", "460800")));
+      config_.transport.modbus.auto_detect =
+        parse_bool(get_parameter("auto_detect", "false"), false);
+      config_.transport.modbus.auto_detect_quick =
+        parse_bool(get_parameter("auto_detect_quick", "true"), true);
       config_.transport.modbus.auto_detect_port = get_parameter("auto_detect_port", "");
     }
     else
@@ -358,21 +355,21 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
         get_parameter("can_clock_hz", std::to_string(config_.transport.canfd.clock_hz))));
       config_.transport.canfd.rx_wait_time = static_cast<uint32_t>(std::stoul(
         get_parameter("can_rx_wait_time", std::to_string(config_.transport.canfd.rx_wait_time))));
-      config_.transport.canfd.rx_buffer_size = static_cast<uint32_t>(std::stoul(
-        get_parameter("can_rx_buffer_size", std::to_string(config_.transport.canfd.rx_buffer_size))));
+      config_.transport.canfd.rx_buffer_size = static_cast<uint32_t>(std::stoul(get_parameter(
+        "can_rx_buffer_size", std::to_string(config_.transport.canfd.rx_buffer_size))));
       config_.transport.canfd.master_id = static_cast<uint8_t>(std::stoul(
         get_parameter("can_master_id", std::to_string(config_.transport.canfd.master_id))));
 
-      config_.transport.canfd.arbitration.sjw = static_cast<uint8_t>(std::stoul(
-        get_parameter("can_arbitration_sjw", std::to_string(config_.transport.canfd.arbitration.sjw))));
-      config_.transport.canfd.arbitration.brp = static_cast<uint16_t>(std::stoul(
-        get_parameter("can_arbitration_brp", std::to_string(config_.transport.canfd.arbitration.brp))));
-      config_.transport.canfd.arbitration.tseg1 = static_cast<uint8_t>(std::stoul(
-        get_parameter("can_arbitration_tseg1", std::to_string(config_.transport.canfd.arbitration.tseg1))));
-      config_.transport.canfd.arbitration.tseg2 = static_cast<uint8_t>(std::stoul(
-        get_parameter("can_arbitration_tseg2", std::to_string(config_.transport.canfd.arbitration.tseg2))));
-      config_.transport.canfd.arbitration.smp = static_cast<uint8_t>(std::stoul(
-        get_parameter("can_arbitration_smp", std::to_string(config_.transport.canfd.arbitration.smp))));
+      config_.transport.canfd.arbitration.sjw = static_cast<uint8_t>(std::stoul(get_parameter(
+        "can_arbitration_sjw", std::to_string(config_.transport.canfd.arbitration.sjw))));
+      config_.transport.canfd.arbitration.brp = static_cast<uint16_t>(std::stoul(get_parameter(
+        "can_arbitration_brp", std::to_string(config_.transport.canfd.arbitration.brp))));
+      config_.transport.canfd.arbitration.tseg1 = static_cast<uint8_t>(std::stoul(get_parameter(
+        "can_arbitration_tseg1", std::to_string(config_.transport.canfd.arbitration.tseg1))));
+      config_.transport.canfd.arbitration.tseg2 = static_cast<uint8_t>(std::stoul(get_parameter(
+        "can_arbitration_tseg2", std::to_string(config_.transport.canfd.arbitration.tseg2))));
+      config_.transport.canfd.arbitration.smp = static_cast<uint8_t>(std::stoul(get_parameter(
+        "can_arbitration_smp", std::to_string(config_.transport.canfd.arbitration.smp))));
 
       config_.transport.canfd.data.sjw = static_cast<uint8_t>(std::stoul(
         get_parameter("can_data_sjw", std::to_string(config_.transport.canfd.data.sjw))));
@@ -389,16 +386,11 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
     const auto duration_value = std::stoul(get_parameter("ctrl_param_duration_ms", "10"));
     config_.ctrl_param_duration_ms = static_cast<uint16_t>(
       std::min<unsigned long>(duration_value, std::numeric_limits<uint16_t>::max()));
-    config_.position_command_scale = std::stod(
-      get_parameter("position_command_scale", "1.0"));
-    config_.position_state_scale = std::stod(
-      get_parameter("position_state_scale", "1.0"));
-    config_.velocity_state_scale = std::stod(
-      get_parameter("velocity_state_scale", "1.0"));
-    config_.position_device_min = std::stod(
-      get_parameter("position_device_min", "0.0"));
-    config_.position_device_max = std::stod(
-      get_parameter("position_device_max", "1000.0"));
+    config_.position_command_scale = std::stod(get_parameter("position_command_scale", "1.0"));
+    config_.position_state_scale = std::stod(get_parameter("position_state_scale", "1.0"));
+    config_.velocity_state_scale = std::stod(get_parameter("velocity_state_scale", "1.0"));
+    config_.position_device_min = std::stod(get_parameter("position_device_min", "0.0"));
+    config_.position_device_max = std::stod(get_parameter("position_device_max", "1000.0"));
   }
   catch (const std::exception & e)
   {
@@ -436,54 +428,46 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
     config_.velocity_state_scale = 1.0;
   }
 
-  const char * protocol_label =
-    config_.transport.protocol == Protocol::kCanfd ? "CANFD" : "MODBUS";
+  const char * protocol_label = config_.transport.protocol == Protocol::kCanfd ? "CANFD" : "MODBUS";
 
   BRAINCO_HAND_LOG_INFO(
-    "Driver config -> protocol=%s slave_id=%u duration=%u ensure_physical_mode=%s",
-    protocol_label,
-    config_.transport.slave_id,
-    config_.ctrl_param_duration_ms,
+    "Driver config -> protocol=%s slave_id=%u duration=%u ensure_physical_mode=%s", protocol_label,
+    config_.transport.slave_id, config_.ctrl_param_duration_ms,
     config_.transport.ensure_physical_mode ? "true" : "false");
 
   if (config_.transport.protocol == Protocol::kModbus)
   {
     BRAINCO_HAND_LOG_INFO(
       "Modbus -> port=%s baudrate=%u auto_detect=%s quick=%s hint=%s",
-      config_.transport.modbus.port.c_str(),
-      config_.transport.modbus.baudrate,
+      config_.transport.modbus.port.c_str(), config_.transport.modbus.baudrate,
       config_.transport.modbus.auto_detect ? "true" : "false",
       config_.transport.modbus.auto_detect_quick ? "true" : "false",
-      config_.transport.modbus.auto_detect_port.empty() ? "<auto>" : config_.transport.modbus.auto_detect_port.c_str());
+      config_.transport.modbus.auto_detect_port.empty()
+        ? "<auto>"
+        : config_.transport.modbus.auto_detect_port.c_str());
   }
   else
   {
     BRAINCO_HAND_LOG_INFO(
       "CANFD -> device_type=%u card=%u channel=%u clock=%u rx_wait=%u rx_buf=%u master_id=%u",
-      config_.transport.canfd.device_type,
-      config_.transport.canfd.card_index,
-      config_.transport.canfd.channel_index,
-      config_.transport.canfd.clock_hz,
-      config_.transport.canfd.rx_wait_time,
-      config_.transport.canfd.rx_buffer_size,
+      config_.transport.canfd.device_type, config_.transport.canfd.card_index,
+      config_.transport.canfd.channel_index, config_.transport.canfd.clock_hz,
+      config_.transport.canfd.rx_wait_time, config_.transport.canfd.rx_buffer_size,
       config_.transport.canfd.master_id);
   }
 
   BRAINCO_HAND_LOG_INFO(
-    "position_command_scale=%f position_state_scale=%f velocity_state_scale=%f position_device_min=%f position_device_max=%f",
-    config_.position_command_scale,
-    config_.position_state_scale,
-    config_.velocity_state_scale,
-    config_.position_device_min,
-    config_.position_device_max);
-  BRAINCO_HAND_LOG_INFO("log_level=%s",
-    brainco_log_level_to_string(config_.transport.log_level).c_str());
+    "position_command_scale=%f position_state_scale=%f velocity_state_scale=%f "
+    "position_device_min=%f position_device_max=%f",
+    config_.position_command_scale, config_.position_state_scale, config_.velocity_state_scale,
+    config_.position_device_min, config_.position_device_max);
+  BRAINCO_HAND_LOG_INFO(
+    "log_level=%s", brainco_log_level_to_string(config_.transport.log_level).c_str());
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-auto BraincoHandHardware::validate_joints() const
-  -> hardware_interface::CallbackReturn
+auto BraincoHandHardware::validate_joints() const -> hardware_interface::CallbackReturn
 {
   if (info_.joints.empty())
   {
@@ -524,9 +508,7 @@ auto BraincoHandHardware::close_connection() -> void
     if (resolved_connection_)
     {
       BRAINCO_HAND_LOG_INFO(
-        "Closing %s connection on %s",
-        protocol_label,
-        resolved_connection_->port.c_str());
+        "Closing %s connection on %s", protocol_label, resolved_connection_->port.c_str());
     }
     else
     {
@@ -554,30 +536,26 @@ auto BraincoHandHardware::open_connection() -> bool
   if (resolved_connection_)
   {
     if (config_.transport.protocol == Protocol::kModbus)
-  {
+    {
       config_.transport.slave_id = resolved_connection_->slave_id;
     }
     BRAINCO_HAND_LOG_INFO(
-      "Resolved transport -> port=%s baudrate=%u slave_id=%u",
-      resolved_connection_->port.c_str(),
-      resolved_connection_->baudrate,
-      resolved_connection_->slave_id);
+      "Resolved transport -> port=%s baudrate=%u slave_id=%u", resolved_connection_->port.c_str(),
+      resolved_connection_->baudrate, resolved_connection_->slave_id);
   }
 
   BraincoHandApi::DeviceInfoData device_info{};
   if (api_.fetch_device_info(config_.transport.slave_id, device_info))
   {
     BRAINCO_HAND_LOG_INFO(
-      "Device info -> SKU=%u hardware_type=%u serial=%s firmware=%s",
-      device_info.sku_type,
+      "Device info -> SKU=%u hardware_type=%u serial=%s firmware=%s", device_info.sku_type,
       device_info.hardware_type,
       device_info.serial_number.empty() ? "<unknown>" : device_info.serial_number.c_str(),
       device_info.firmware_version.empty() ? "<unknown>" : device_info.firmware_version.c_str());
   }
   else
   {
-    BRAINCO_HAND_LOG_WARN(
-      "Failed to fetch device info for slave %u", config_.transport.slave_id);
+    BRAINCO_HAND_LOG_WARN("Failed to fetch device info for slave %u", config_.transport.slave_id);
   }
 
   return true;
@@ -606,9 +584,9 @@ auto BraincoHandHardware::ensure_physical_unit_mode() -> bool
 auto BraincoHandHardware::parse_log_level(const std::string & level_str) -> BraincoLogLevel
 {
   std::string lowercase = level_str;
-  std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), [](unsigned char character) {
-    return static_cast<char>(std::tolower(character));
-  });
+  std::transform(
+    lowercase.begin(), lowercase.end(), lowercase.begin(),
+    [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
 
   if (lowercase == "trace")
   {
@@ -643,9 +621,9 @@ auto BraincoHandHardware::parse_bool(const std::string & value, bool default_val
   }
 
   std::string lowercase = value;
-  std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), [](unsigned char character) {
-    return static_cast<char>(std::tolower(character));
-  });
+  std::transform(
+    lowercase.begin(), lowercase.end(), lowercase.begin(),
+    [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
 
   if (lowercase == "true" || lowercase == "1" || lowercase == "yes" || lowercase == "on")
   {
@@ -673,6 +651,5 @@ auto BraincoHandHardware::get_parameter(
 
 }  // namespace brainco_hand_driver
 
-PLUGINLIB_EXPORT_CLASS(brainco_hand_driver::BraincoHandHardware, hardware_interface::SystemInterface)
-
-
+PLUGINLIB_EXPORT_CLASS(
+  brainco_hand_driver::BraincoHandHardware, hardware_interface::SystemInterface)
