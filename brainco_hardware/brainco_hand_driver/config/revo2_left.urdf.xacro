@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="revo2_left">
+    <xacro:arg name="initial_positions_file" default="revo2_left_initial_positions.yaml" />
+    <xacro:arg name="protocol_config_file" default="$(find brainco_hand_driver)/config/protocol_modbus_left.yaml" />
+
+    <!-- World link -->
+    <link name="world"/>
+
+    <!-- Import revo2 left hand urdf -->
+    <xacro:include filename="$(find revo2_description)/urdf/revo2_left_hand.urdf.xacro" />
+    <xacro:revo2_left_hand />
+
+    <!-- Connect left hand to world -->
+    <joint name="world_to_hand" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <parent link="world"/>
+        <child link="left_base_link"/>
+    </joint>
+
+    <!-- Import ros2_control configuration -->
+    <xacro:include filename="revo2_left.ros2_control.xacro" />
+    <xacro:revo2_left_ros2_control
+        name="Revo2LeftSystem"
+        initial_positions_file="$(arg initial_positions_file)"
+        protocol_config_file="$(arg protocol_config_file)"/>
+
+</robot>
+

@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dual_revo2_gazebo_description">
+
+    <!-- World link -->
+    <link name="world"/>
+
+    <!-- Left hand base cylinder -->
+    <link name="left_base">
+        <visual>
+            <geometry>
+                <cylinder length="0.1" radius="0.05"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0 0 0 1"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.1" radius="0.05"/>
+            </geometry>
+        </collision>
+    </link>
+    <joint name="left_base_fixed" type="fixed">
+        <origin xyz="0 -0.10 0" rpy="0 0 0"/>
+        <parent link="world"/>
+        <child link="left_base"/>
+    </joint>
+
+    <!-- Right hand base cylinder -->
+    <link name="right_base">
+        <visual>
+            <geometry>
+                <cylinder length="0.1" radius="0.05"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0 0 0 1"/>
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.1" radius="0.05"/>
+            </geometry>
+        </collision>
+    </link>
+    <joint name="right_base_fixed" type="fixed">
+        <origin xyz="0 0.10 0" rpy="0 0 0"/>
+        <parent link="world"/>
+        <child link="right_base"/>
+    </joint>
+
+    <!-- Import left hand and connect to left_base -->
+    <xacro:include filename="$(find revo2_description)/urdf/revo2_left_hand.urdf.xacro" />
+    <xacro:revo2_left_hand />
+    <joint name="left_hand_attach" type="fixed">
+        <origin xyz="0 0 0.05" rpy="0 0 0"/> <!-- Adjust as needed -->
+        <parent link="left_base"/>
+        <child link="left_base_link"/>
+    </joint>
+
+    <!-- Import right hand and connect to right_base -->
+    <xacro:include filename="$(find revo2_description)/urdf/revo2_right_hand.urdf.xacro" />
+    <xacro:revo2_right_hand />
+    <joint name="right_hand_attach" type="fixed">
+        <origin xyz="0 0 0.05" rpy="0 0 0"/> <!-- Adjust as needed -->
+        <parent link="right_base"/>
+        <child link="right_base_link"/>
+    </joint>
+
+    <!-- ros2_control for both hands -->
+    <ros2_control name="GazeboSimSystem" type="system">
+        <hardware>
+            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </hardware>
+
+        <!-- Left hand joints -->
+        <joint name="left_thumb_metacarpal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="left_thumb_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.1</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="left_index_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="left_middle_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="left_ring_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="left_pinky_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <!-- Left mimic joints -->
+        <joint name="left_thumb_distal_joint">
+            <param name="mimic">left_thumb_proximal_joint</param>
+            <param name="multiplier">1</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="left_index_distal_joint">
+            <param name="mimic">left_index_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="left_middle_distal_joint">
+            <param name="mimic">left_middle_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="left_ring_distal_joint">
+            <param name="mimic">left_ring_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="left_pinky_distal_joint">
+            <param name="mimic">left_pinky_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <!-- Right hand joints -->
+        <joint name="right_thumb_metacarpal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_thumb_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0.1</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_index_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_middle_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_ring_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="right_pinky_proximal_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"><param name="initial_value">0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+
+        <!-- Right mimic joints -->
+        <joint name="right_thumb_distal_joint">
+            <param name="mimic">right_thumb_proximal_joint</param>
+            <param name="multiplier">1</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="right_index_distal_joint">
+            <param name="mimic">right_index_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="right_middle_distal_joint">
+            <param name="mimic">right_middle_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="right_ring_distal_joint">
+            <param name="mimic">right_ring_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+        <joint name="right_pinky_distal_joint">
+            <param name="mimic">right_pinky_proximal_joint</param>
+            <param name="multiplier">1.155</param>
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+    </ros2_control>
+
+    <!-- Load gz_ros2_control plugin -->
+    <gazebo>
+        <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <parameters>$(find brainco_gazebo)/config/dual_revo2_controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+</robot>

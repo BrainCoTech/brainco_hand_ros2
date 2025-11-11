@@ -1,0 +1,35 @@
+# MoveIt uses this configuration for controller management
+
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+moveit_simple_controller_manager:
+  controller_names:
+    - left_revo2_hand_controller
+    - right_revo2_hand_controller
+
+  # Revo2 left hand unified controller - controls all 6 main joints
+  left_revo2_hand_controller:
+    type: FollowJointTrajectory
+    joints:
+      - left_thumb_metacarpal_joint  # Thumb metacarpal joint
+      - left_thumb_proximal_joint    # Thumb proximal joint
+      - left_index_proximal_joint    # Index finger proximal joint
+      - left_middle_proximal_joint   # Middle finger proximal joint
+      - left_ring_proximal_joint     # Ring finger proximal joint
+      - left_pinky_proximal_joint    # Pinky finger proximal joint
+    action_ns: follow_joint_trajectory
+    default: true
+
+  # Revo2 right hand unified controller - controls all 6 main joints
+  right_revo2_hand_controller:
+    type: FollowJointTrajectory
+    joints:
+      - right_thumb_metacarpal_joint  # Thumb metacarpal joint
+      - right_thumb_proximal_joint    # Thumb proximal joint
+      - right_index_proximal_joint    # Index finger proximal joint
+      - right_middle_proximal_joint   # Middle finger proximal joint
+      - right_ring_proximal_joint     # Ring finger proximal joint
+      - right_pinky_proximal_joint    # Pinky finger proximal joint
+    action_ns: follow_joint_trajectory
+    default: true
+

@@ -1,0 +1,5 @@
+repositories:
+  revo2_description:
+    type: git
+    url: https://github.com/BrainCoTech/revo2_description.git
+    version: main

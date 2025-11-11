@@ -1,0 +1,20 @@
+# 忽略所有git相关文件和目录
+# **/.git/
+# **/.gitignore
+# **/.gitmodules
+# **/.gitattributes
+# **/.github/
+
+revo2_description/
+
+build/
+install/
+log/
+*.pyc
+COLCON_IGNORE
+AMENT_IGNORE
+
+.vscode/*
+.cache/*
+.clangd
+compile_commands.json

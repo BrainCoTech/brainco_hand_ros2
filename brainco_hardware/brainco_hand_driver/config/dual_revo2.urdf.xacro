@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dual_revo2">
+    <xacro:arg name="initial_positions_file" default="dual_revo2_initial_positions.yaml" />
+    <xacro:arg name="left_protocol_config_file" default="$(find brainco_hand_driver)/config/protocol_modbus_left.yaml" />
+    <xacro:arg name="right_protocol_config_file" default="$(find brainco_hand_driver)/config/protocol_modbus.yaml" />
+
+    <!-- World link -->
+    <link name="world"/>
+
+    <!-- Import left hand and connect to world -->
+    <xacro:include filename="$(find revo2_description)/urdf/revo2_left_hand.urdf.xacro" />
+    <xacro:revo2_left_hand />
+    <joint name="world_to_left_hand" type="fixed">
+        <origin xyz="0 -0.10 0" rpy="0 0 0"/>
+        <parent link="world"/>
+        <child link="left_base_link"/>
+    </joint>
+
+    <!-- Import right hand and connect to world -->
+    <xacro:include filename="$(find revo2_description)/urdf/revo2_right_hand.urdf.xacro" />
+    <xacro:revo2_right_hand />
+    <joint name="world_to_right_hand" type="fixed">
+        <origin xyz="0 0.10 0" rpy="0 0 0"/>
+        <parent link="world"/>
+        <child link="right_base_link"/>
+    </joint>
+
+    <!-- Import ros2_control configuration -->
+    <xacro:include filename="dual_revo2.ros2_control.xacro" />
+    <xacro:dual_revo2_ros2_control
+        name="DualRevo2System"
+        initial_positions_file="$(arg initial_positions_file)"
+        left_protocol_config_file="$(arg left_protocol_config_file)"
+        right_protocol_config_file="$(arg right_protocol_config_file)"/>
+
+</robot>
+

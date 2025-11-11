@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro
+    name="revo2_left_ros2_control"
+    params="name initial_positions_file protocol_config_file">
+    <xacro:property
+      name="initial_positions"
+      value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
+    <xacro:property
+      name="hardware_config"
+      value="${xacro.load_yaml(protocol_config_file)['hardware']}"/>
+
+    <ros2_control name="${name}" type="system">
+      <hardware>
+        <plugin>brainco_hand_driver/BraincoHandHardware</plugin>
+        <param name="protocol">${hardware_config['protocol']}</param>
+        <param name="slave_id">${hardware_config['slave_id']}</param>
+        <param name="log_level">${hardware_config['log_level']}</param>
+        <param name="ctrl_param_duration_ms">${hardware_config['ctrl_param_duration_ms']}</param>
+        <param name="position_command_scale">${hardware_config['position_command_scale']}</param>
+        <param name="position_state_scale">${hardware_config['position_state_scale']}</param>
+        <param name="velocity_state_scale">${hardware_config['velocity_state_scale']}</param>
+        <param name="position_device_min">${hardware_config['position_device_min']}</param>
+        <param name="position_device_max">${hardware_config['position_device_max']}</param>
+        <param name="ensure_physical_mode">${hardware_config['ensure_physical_mode']}</param>
+        <xacro:if value="${'port' in hardware_config}">
+          <param name="port">${hardware_config['port']}</param>
+        </xacro:if>
+        <xacro:if value="${'baudrate' in hardware_config}">
+          <param name="baudrate">${hardware_config['baudrate']}</param>
+        </xacro:if>
+        <xacro:if value="${'auto_detect' in hardware_config}">
+          <param name="auto_detect">${hardware_config['auto_detect']}</param>
+        </xacro:if>
+        <xacro:if value="${'auto_detect_quick' in hardware_config}">
+          <param name="auto_detect_quick">${hardware_config['auto_detect_quick']}</param>
+        </xacro:if>
+        <xacro:if value="${'auto_detect_port' in hardware_config}">
+          <param name="auto_detect_port">${hardware_config['auto_detect_port']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_device_type' in hardware_config}">
+          <param name="can_device_type">${hardware_config['can_device_type']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_card_index' in hardware_config}">
+          <param name="can_card_index">${hardware_config['can_card_index']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_channel_index' in hardware_config}">
+          <param name="can_channel_index">${hardware_config['can_channel_index']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_clock_hz' in hardware_config}">
+          <param name="can_clock_hz">${hardware_config['can_clock_hz']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_rx_wait_time' in hardware_config}">
+          <param name="can_rx_wait_time">${hardware_config['can_rx_wait_time']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_rx_buffer_size' in hardware_config}">
+          <param name="can_rx_buffer_size">${hardware_config['can_rx_buffer_size']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_master_id' in hardware_config}">
+          <param name="can_master_id">${hardware_config['can_master_id']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_arbitration_sjw' in hardware_config}">
+          <param name="can_arbitration_sjw">${hardware_config['can_arbitration_sjw']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_arbitration_brp' in hardware_config}">
+          <param name="can_arbitration_brp">${hardware_config['can_arbitration_brp']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_arbitration_tseg1' in hardware_config}">
+          <param name="can_arbitration_tseg1">${hardware_config['can_arbitration_tseg1']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_arbitration_tseg2' in hardware_config}">
+          <param name="can_arbitration_tseg2">${hardware_config['can_arbitration_tseg2']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_arbitration_smp' in hardware_config}">
+          <param name="can_arbitration_smp">${hardware_config['can_arbitration_smp']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_data_sjw' in hardware_config}">
+          <param name="can_data_sjw">${hardware_config['can_data_sjw']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_data_brp' in hardware_config}">
+          <param name="can_data_brp">${hardware_config['can_data_brp']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_data_tseg1' in hardware_config}">
+          <param name="can_data_tseg1">${hardware_config['can_data_tseg1']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_data_tseg2' in hardware_config}">
+          <param name="can_data_tseg2">${hardware_config['can_data_tseg2']}</param>
+        </xacro:if>
+        <xacro:if value="${'can_data_smp' in hardware_config}">
+          <param name="can_data_smp">${hardware_config['can_data_smp']}</param>
+        </xacro:if>
+      </hardware>
+
+      <joint name="left_thumb_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['left_thumb_proximal_joint']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="left_thumb_metacarpal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['left_thumb_metacarpal_joint']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="left_index_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['left_index_proximal_joint']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="left_middle_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['left_middle_proximal_joint']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="left_ring_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['left_ring_proximal_joint']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="left_pinky_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['left_pinky_proximal_joint']}</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+    </ros2_control>
+  </xacro:macro>
+</robot>

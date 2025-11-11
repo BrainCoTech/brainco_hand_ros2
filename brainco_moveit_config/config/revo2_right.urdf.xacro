@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="revo2_right">
+    <xacro:arg name="initial_positions_file" default="revo2_right_initial_positions.yaml" />
+
+    <!-- World link -->
+    <link name="world"/>
+
+    <!-- Import revo2 right hand urdf -->
+    <xacro:include filename="$(find revo2_description)/urdf/revo2_right_hand.urdf.xacro" />
+    <xacro:revo2_right_hand />
+
+    <!-- Connect right hand to world -->
+    <joint name="world_to_hand" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <parent link="world"/>
+        <child link="right_base_link"/>
+    </joint>
+
+    <!-- Import ros2_control configuration -->
+    <xacro:include filename="revo2_right.ros2_control.xacro" />
+    <xacro:revo2_right_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+
+</robot>
+

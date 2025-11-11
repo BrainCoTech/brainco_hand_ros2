@@ -1,0 +1,8 @@
+<library path="brainco_hand_driver">
+  <class name="brainco_hand_driver/BraincoHandHardware"
+         type="brainco_hand_driver::BraincoHandHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>BrainCo Revo2 Modbus hardware interface for ros2_control</description>
+  </class>
+</library>
+

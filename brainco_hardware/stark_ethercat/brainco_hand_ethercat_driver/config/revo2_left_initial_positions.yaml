@@ -1,0 +1,10 @@
+# Default initial positions for revo2_left's ros2_control fake system
+
+initial_positions:
+  # Revo2 left hand joint initial positions
+  left_thumb_metacarpal_joint: 0   # Thumb metacarpal joint
+  left_thumb_proximal_joint: 0   # Thumb proximal joint
+  left_index_proximal_joint: 0     # Index finger proximal joint
+  left_middle_proximal_joint: 0    # Middle finger proximal joint
+  left_ring_proximal_joint: 0      # Ring finger proximal joint
+  left_pinky_proximal_joint: 0     # Pinky finger proximal joint

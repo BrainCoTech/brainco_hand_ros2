@@ -1,0 +1,7 @@
+<library path="brainco_hand_ethercat_driver">
+  <class name="revo2_ethercat_plugins/Revo2JointsSystemSlave"
+         type="revo2_ethercat_plugins::Revo2JointsSystemSlave"
+         base_class_type="stark_ethercat_interface::EcSlave">
+    <description>BrainCo Revo2 joints system EtherCAT slave plugin (single slave, 6 joints)</description>
+  </class>
+</library>

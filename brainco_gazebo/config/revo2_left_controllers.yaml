@@ -1,0 +1,52 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    # Controllers for the left hand
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    left_revo2_hand_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# revo2 Left Hand Configuration 
+left_revo2_hand_controller:
+  ros__parameters:
+    joints:
+      - left_thumb_metacarpal_joint
+      - left_thumb_proximal_joint
+      - left_index_proximal_joint
+      - left_middle_proximal_joint
+      - left_ring_proximal_joint
+      - left_pinky_proximal_joint
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    # constraints:
+    #   stopped_velocity_tolerance: 0.01
+    #   goal_time: 1.0
+    #   left_thumb_metacarpal_joint:
+    #     trajectory: 0.05
+    #     goal: 0.03
+    #   left_thumb_proximal_joint:
+    #     trajectory: 0.05
+    #     goal: 0.03
+    #   left_index_proximal_joint:
+    #     trajectory: 0.05
+    #     goal: 0.03
+    #   left_middle_proximal_joint:
+    #     trajectory: 0.05
+    #     goal: 0.03
+    #   left_ring_proximal_joint:
+    #     trajectory: 0.05
+    #     goal: 0.03
+    #   left_pinky_proximal_joint:
+    #     trajectory: 0.05
+    #     goal: 0.03

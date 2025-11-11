@@ -1,0 +1,9 @@
+<library path="stark_ethercat_driver">
+  <class name="stark_ethercat_driver/EthercatDriver"
+         type="stark_ethercat_driver::EthercatDriver"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+        EtherCAT Driver for ros2_control.
+    </description>
+  </class>
+</library>

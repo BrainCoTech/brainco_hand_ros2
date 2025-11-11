@@ -1,0 +1,29 @@
+hardware:
+  protocol: canfd
+  slave_id: 127
+  log_level: info
+  ensure_physical_mode: true
+  ctrl_param_duration_ms: 10
+  position_command_scale: 572.9577951308232
+  position_state_scale: 0.0017453292519943296
+  velocity_state_scale: 0.0017453292519943296
+  position_device_min: 0.0
+  position_device_max: 1000.0
+  can_device_type: 33
+  can_card_index: 0
+  can_channel_index: 0
+  can_clock_hz: 60000000
+  can_rx_wait_time: 100
+  can_rx_buffer_size: 1000
+  can_master_id: 1
+  can_arbitration_sjw: 1
+  can_arbitration_brp: 4
+  can_arbitration_tseg1: 7
+  can_arbitration_tseg2: 2
+  can_arbitration_smp: 0
+  can_data_sjw: 1
+  can_data_brp: 0
+  can_data_tseg1: 7
+  can_data_tseg2: 2
+  can_data_smp: 0
+

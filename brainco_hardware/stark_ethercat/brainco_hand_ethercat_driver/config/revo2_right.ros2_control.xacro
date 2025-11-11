@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="revo2_right_ros2_control" params="name initial_positions_file ctrl_param_duration_ms:=10">
+        <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
+
+        <ros2_control name="${name}" type="system">
+            <hardware>
+                <!-- Use EtherCAT driver for real hardware -->
+                <plugin>stark_ethercat_driver/EthercatDriver</plugin>
+                <param name="master_id">0</param>
+                <param name="control_frequency">1000</param>
+            </hardware>
+
+            <!-- EtherCAT module configuration -->
+            <gpio name="${name}">
+                <ec_module name="Revo2_Right_System">
+                    <plugin>revo2_ethercat_plugins/Revo2JointsSystemSlave</plugin>
+                    <param name="alias">0</param>
+                    <param name="position">0</param>
+                    <param name="ctrl_param_duration_ms">${ctrl_param_duration_ms}</param>
+                    <param name="assign_activate">0x0000</param>
+                </ec_module>
+            </gpio>
+
+            <!-- Right hand joints in plugin-expected order: proximal (flex), metacarpal (abduct), index, middle, ring, pinky -->
+            <joint name="right_thumb_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_thumb_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+
+            <joint name="right_thumb_metacarpal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_thumb_metacarpal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+
+            <joint name="right_index_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_index_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+
+            <joint name="right_middle_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_middle_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+
+            <joint name="right_ring_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_ring_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+
+            <joint name="right_pinky_proximal_joint">
+                <command_interface name="position"/>
+                <state_interface name="position">
+                  <param name="initial_value">${initial_positions['right_pinky_proximal_joint']}</param>
+                </state_interface>
+                <state_interface name="velocity"/>
+                <state_interface name="effort"/>
+            </joint>
+
+        </ros2_control>
+    </xacro:macro>
+</robot>
+

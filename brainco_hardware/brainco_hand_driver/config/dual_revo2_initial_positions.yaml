@@ -1,0 +1,19 @@
+# Default initial positions for dual_revo2's ros2_control real system
+
+initial_positions:
+  # Left hand joint initial positions
+  left_thumb_metacarpal_joint: 0   # Thumb metacarpal joint
+  left_thumb_proximal_joint: 0     # Thumb proximal joint
+  left_index_proximal_joint: 0     # Index finger proximal joint
+  left_middle_proximal_joint: 0    # Middle finger proximal joint
+  left_ring_proximal_joint: 0      # Ring finger proximal joint
+  left_pinky_proximal_joint: 0     # Pinky finger proximal joint
+  
+  # Right hand joint initial positions
+  right_thumb_metacarpal_joint: 0   # Thumb metacarpal joint
+  right_thumb_proximal_joint: 0     # Thumb proximal joint
+  right_index_proximal_joint: 0     # Index finger proximal joint
+  right_middle_proximal_joint: 0    # Middle finger proximal joint
+  right_ring_proximal_joint: 0      # Ring finger proximal joint
+  right_pinky_proximal_joint: 0     # Pinky finger proximal joint
+
