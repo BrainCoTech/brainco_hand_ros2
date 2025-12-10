@@ -141,6 +141,8 @@ private:
     {
       return 8;
     }
+    std::cerr << "unknown sdo type: " << type << std::endl;
+    return 0;
   }
 };
 

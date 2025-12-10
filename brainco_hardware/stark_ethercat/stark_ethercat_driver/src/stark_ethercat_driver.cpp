@@ -528,7 +528,6 @@ hardware_interface::return_type EthercatDriver::read(
     }
     master_.readData();
     // Copy aggregated states into per-joint state buffers for ros2_control exposure
-    size_t aggregate_index = 0;
     for (uint j = 0; j < info_.joints.size(); j++)
     {
       size_t state_base = joint_state_offsets_[j];
