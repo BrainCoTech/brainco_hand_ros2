@@ -105,7 +105,6 @@ ros2 launch brainco_gazebo dual_revo2_hand_gazebo_moveit.launch.py
 | `hand_type` | `right` | Hand type: 'left' or 'right' (single hand only) |
 | `world` | `empty_world` | Gazebo world file |
 | `use_rviz` | `true` | Whether to launch RViz with MoveIt plugin |
-| `db` | `false` | Whether to start MoveIt warehouse database |
 | `publish_monitored_planning_scene` | `true` | Publish monitored planning scene |
 
 ### Using MoveIt for Motion Planning

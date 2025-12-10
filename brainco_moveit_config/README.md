@@ -89,7 +89,6 @@ All launch files support the following parameters:
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `use_rviz` | `true` | Whether to launch RViz visualization |
-| `db` | `false` | Whether to start MoveIt warehouse database |
 | `publish_frequency` | `15.0` | TF publish frequency (Hz) |
 | `allow_trajectory_execution` | `true` | Whether to allow trajectory execution |
 | `publish_monitored_planning_scene` | `true` | Whether to publish monitored planning scene |

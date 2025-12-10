@@ -17,7 +17,6 @@ Launch 参数：
 - world: Gazebo 世界文件名（默认: empty_world）
 - use_rviz: 是否启动 RViz（默认: true）
 - rviz_config: RViz 配置文件（默认使用 MoveIt 配置）
-- db: 是否启动 MoveIt 数据库（默认: false）
 - publish_monitored_planning_scene: 是否发布监控的规划场景（默认: true）
 """
 
@@ -60,11 +59,6 @@ def generate_launch_description():
             description='RViz 配置文件路径（为空则使用 MoveIt 默认配置）'
         ),
         DeclareBooleanLaunchArg(
-            'db',
-            default_value=False,
-            description='是否启动 MoveIt 数据库'
-        ),
-        DeclareBooleanLaunchArg(
             'publish_monitored_planning_scene',
             default_value=True,
             description='是否发布监控的规划场景'
@@ -79,31 +73,10 @@ def generate_launch_description():
             default_value='',
             description='要禁用的 MoveGroup 能力（空格分隔）'
         ),
-        DeclareLaunchArgument(
-            'moveit_warehouse_database_path',
-            default_value='',
-            description='MoveIt 数据库路径'
-        ),
-        DeclareBooleanLaunchArg(
-            'reset',
-            default_value=False,
-            description='是否重置数据库'
-        ),
-        DeclareLaunchArgument(
-            'moveit_warehouse_port',
-            default_value='33829',
-            description='MongoDB 端口'
-        ),
-        DeclareLaunchArgument(
-            'moveit_warehouse_host',
-            default_value='localhost',
-            description='MongoDB 主机'
-        ),
     ]
 
     world = LaunchConfiguration('world')
     use_rviz = LaunchConfiguration('use_rviz')
-    db = LaunchConfiguration('db')
     
     # ===== 包路径 =====
     demo_package_path = get_package_share_directory('gazebo_rm_65_6f_with_revo2_demo')
@@ -317,36 +290,6 @@ def generate_launch_description():
         condition=IfCondition(use_rviz),
     )
 
-    # ===== MoveIt 数据库（可选） =====
-    warehouse_db_path = LaunchConfiguration('moveit_warehouse_database_path')
-    default_warehouse_path = str(Path(moveit_config_package_path) / 'default_warehouse_mongo_db')
-    
-    db_parameters = [
-        {
-            "overwrite": False,
-            "database_path": default_warehouse_path,
-            "warehouse_port": LaunchConfiguration("moveit_warehouse_port"),
-            "warehouse_host": LaunchConfiguration("moveit_warehouse_host"),
-            "warehouse_exec": "mongod",
-            "warehouse_plugin": "warehouse_ros_mongo::MongoDatabaseConnection",
-            "use_sim_time": True,
-        },
-    ]
-
-    db_node = Node(
-        package="warehouse_ros_mongo",
-        executable="mongo_wrapper_ros.py",
-        parameters=db_parameters,
-        condition=IfCondition(db),
-    )
-
-    reset_node = Node(
-        package="moveit_ros_warehouse",
-        executable="moveit_init_demo_warehouse",
-        output="screen",
-        parameters=[{'use_sim_time': True}],
-        condition=IfCondition(LaunchConfiguration("reset")),
-    )
 
     # ===== Clock Bridge =====
     # 桥接 Gazebo 时钟到 ROS 2
@@ -411,10 +354,8 @@ def generate_launch_description():
         )
     )
     
-    # 添加可视化和数据库节点
+    # 添加可视化节点
     ld.add_action(rviz_node)
-    ld.add_action(db_node)
-    ld.add_action(reset_node)
     
     return ld
 

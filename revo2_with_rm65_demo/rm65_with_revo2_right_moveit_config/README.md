@@ -73,7 +73,6 @@ ros2 launch rm65_with_revo2_right_moveit_config rm65_with_revo2_right_moveit.lau
 |-----------|---------|-------------|
 | `use_sim_time` | `false` | Use simulation time |
 | `pipeline` | `ompl` | Motion planning pipeline (ompl/pilz) |
-| `warehouse_plugin` | `warehouse_ros_mongo::MongoDatabaseConnection` | Warehouse database plugin |
 
 ## Motion Planning
 

@@ -12,7 +12,6 @@
 - 关节状态广播器和轨迹控制器生成器
 
 Launch 参数：
-- db: 是否启动 MoveIt 仓库数据库（默认: false）
 - use_rviz: 是否启动 RViz 可视化界面（默认: true）
 - publish_frequency: TF 变换发布的频率（Hz，默认: 15.0）
 - allow_trajectory_execution: 是否允许轨迹执行（默认: true）
@@ -48,7 +47,6 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     # ===== LAUNCH 参数声明 =====
-    ld.add_action(DeclareBooleanLaunchArg("db", default_value=False))
     ld.add_action(DeclareBooleanLaunchArg("use_rviz", default_value=True))
     ld.add_action(DeclareLaunchArgument("publish_frequency", default_value="15.0"))
     ld.add_action(DeclareBooleanLaunchArg("allow_trajectory_execution", default_value=True))
