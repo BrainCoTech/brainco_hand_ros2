@@ -12,7 +12,6 @@
 - 可选的 MoveIt 仓库数据库（用于存储查询）
 
 Launch 参数：
-- db: 是否启动 MoveIt 仓库数据库（默认: false）
 - debug: 是否启用调试模式（默认: false）
 - use_rviz: 是否启动 RViz 可视化界面（默认: true）
 """
@@ -44,14 +43,6 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     # 声明 launch 参数
-    # db: 是否启动数据库（默认不启动，因为数据库可能很大）
-    ld.add_action(
-        DeclareBooleanLaunchArg(
-            "db",
-            default_value=False,
-            description="By default, we do not start a database (it can be large)",
-        )
-    )
     # debug: 是否启用调试模式（默认不启用）
     ld.add_action(
         DeclareBooleanLaunchArg(
@@ -103,17 +94,6 @@ def generate_launch_description():
                 str(launch_package_path / "launch/moveit_rviz.launch.py")
             ),
             condition=IfCondition(LaunchConfiguration("use_rviz")),
-        )
-    )
-
-    # 如果启用数据库，包含仓库数据库 launch 文件
-    # 仓库数据库用于存储和查询运动规划结果
-    ld.add_action(
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(launch_package_path / "launch/warehouse_db.launch.py")
-            ),
-            condition=IfCondition(LaunchConfiguration("db")),
         )
     )
 

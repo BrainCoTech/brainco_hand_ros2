@@ -6,6 +6,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <array>
 
 class ExecuteCommand
 {
@@ -13,10 +14,13 @@ public:
   // 执行命令并返回输出
   static std::string run(const std::string & command)
   {
-    // 创建管道并打开命令
-    std::array<char, 128> buffer;
+    static constexpr size_t BUFFER_SIZE = 128;
+    std::array<char, BUFFER_SIZE> buffer = {};
     std::string result;
-    std::shared_ptr<FILE> pipe(popen(command.c_str(), "r"), fclose);
+    
+    // 自定义删除器，确保只调用一次pclose
+    auto deleter = [](FILE* f) { if (f) pclose(f); };
+    std::unique_ptr<FILE, decltype(deleter)> pipe(popen(command.c_str(), "r"), deleter);
 
     if (!pipe)
     {
@@ -24,7 +28,7 @@ public:
     }
 
     // 读取命令执行结果
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr)
     {
       result += buffer.data();
     }

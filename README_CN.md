@@ -35,6 +35,10 @@ BrainCo Hand ROS2 是一个完整的 ROS 2 软件包集合，为 BrainCo Revo2 �
 - ZLG USB-CAN FD 设备（如 USBCANFD-200U）
 - CAN FD 总线连接
 
+#### EtherCAT 模式（可选）
+- EtherCAT 主站（IgH EtherCAT Master）
+- EtherCAT 主站服务配置（`ethercat` 系统服务）
+
 ### 仿真环境要求
 
 - **Gazebo**：Ignition Gazebo 6（用于仿真功能包）
@@ -303,7 +307,7 @@ ros2 topic pub --once /right_revo2_hand_controller/joint_trajectory \
       "right_pinky_proximal_joint"
     ],
     points: [{
-      positions: [0.1, 0.8, 1.4, 1.4, 1.4, 1.4],
+      positions: [0.8, 0.1, 1.4, 1.4, 1.4, 1.4],
       time_from_start: {sec: 2}
     }]
   }'

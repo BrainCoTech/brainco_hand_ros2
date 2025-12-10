@@ -48,7 +48,7 @@ set_target_properties(brainco_stark_sdk PROPERTIES
 # 该库随仓库 vendor 目录一同发布，详细请见 https://manual.zlg.cn/web/#/146 
 # -----------------------------------------------------------------------------
 set(ZLG_CANFD_VENDOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor/usbcanfd_libusb_x64_1.0.12_251029")
-set(ZLG_CANFD_LIB_PATH "${ZLG_CANFD_VENDOR_DIR}/libusbcanfd.so")
+set(ZLG_CANFD_LIB_PATH "${ZLG_CANFD_VENDOR_DIR}/libusbcanfd.so.1.0.12")
 set(ZLG_ZUDS_LIB_PATH   "${ZLG_CANFD_VENDOR_DIR}/libzuds.so")
 
 foreach(_zlg_lib IN ITEMS ${ZLG_CANFD_LIB_PATH} ${ZLG_ZUDS_LIB_PATH})

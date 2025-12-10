@@ -109,7 +109,6 @@ ros2 launch brainco_gazebo dual_revo2_hand_gazebo_moveit.launch.py
 | `hand_type` | `right` | 手的类型 (left/right，仅单手模式) |
 | `world` | `empty_world` | Gazebo 世界文件 |
 | `use_rviz` | `true` | 是否启动带 MoveIt 插件的 RViz |
-| `db` | `false` | 是否启动 MoveIt 仓库数据库 |
 | `publish_monitored_planning_scene` | `true` | 是否发布监控的规划场景 |
 
 ### 使用 MoveIt 进行运动规划

@@ -18,7 +18,6 @@ Launch 参数：
 - hand_type: 手的类型（left/right，默认: right）
 - world: Gazebo 世界文件名（默认: empty_world）
 - use_rviz: 是否启动 RViz（默认: true）
-- db: 是否启动 MoveIt 数据库（默认: false）
 - publish_monitored_planning_scene: 是否发布监控的规划场景（默认: true）
 """
 
@@ -178,11 +177,6 @@ def generate_launch_description():
             'use_rviz', 
             default_value=True,
             description='是否启动 RViz 可视化'
-        ),
-        DeclareBooleanLaunchArg(
-            'db',
-            default_value=False,
-            description='是否启动 MoveIt 数据库'
         ),
         DeclareBooleanLaunchArg(
             'publish_monitored_planning_scene',

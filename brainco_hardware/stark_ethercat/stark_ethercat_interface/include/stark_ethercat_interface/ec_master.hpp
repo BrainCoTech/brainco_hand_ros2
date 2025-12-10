@@ -174,7 +174,7 @@ private:
   {
     EcSlave * slave = NULL;
     ec_slave_config_t * config = NULL;
-    ec_slave_config_state_t config_state = {0};
+    ec_slave_config_state_t config_state = {};
     uint16_t alias = 0;
     uint16_t position = 0;
   };

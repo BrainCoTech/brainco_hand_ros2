@@ -89,7 +89,6 @@ ros2 launch brainco_moveit_config dual_revo2_moveit.launch.py
 | 参数 | 默认值 | 描述 |
 |------|--------|------|
 | `use_rviz` | `true` | 是否启动 RViz 可视化 |
-| `db` | `false` | 是否启动 MoveIt warehouse 数据库 |
 | `publish_frequency` | `15.0` | TF 发布频率 (Hz) |
 | `allow_trajectory_execution` | `true` | 是否允许轨迹执行 |
 | `publish_monitored_planning_scene` | `true` | 是否发布监控的规划场景 |

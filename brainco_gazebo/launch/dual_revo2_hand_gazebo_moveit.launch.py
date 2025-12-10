@@ -17,7 +17,6 @@ Gazebo-MoveIt 整合 Launch 文件 - Revo2 双手
 Launch 参数：
 - world: Gazebo 世界文件名（默认: empty_world）
 - use_rviz: 是否启动 RViz（默认: true）
-- db: 是否启动 MoveIt 数据库（默认: false）
 - publish_monitored_planning_scene: 是否发布监控的规划场景（默认: true）
 """
 
@@ -55,11 +54,6 @@ def generate_launch_description():
             description='是否启动 RViz 可视化'
         ),
         DeclareBooleanLaunchArg(
-            'db',
-            default_value=False,
-            description='是否启动 MoveIt 数据库'
-        ),
-        DeclareBooleanLaunchArg(
             'publish_monitored_planning_scene',
             default_value=True,
             description='是否发布监控的规划场景'
@@ -78,8 +72,7 @@ def generate_launch_description():
 
     world = LaunchConfiguration('world')
     use_rviz = LaunchConfiguration('use_rviz')
-    db = LaunchConfiguration('db')
-    
+
     # ===== 包路径 =====
     gazebo_package_path = get_package_share_directory('brainco_gazebo')
     revo2_description_path = get_package_share_directory('revo2_description')
