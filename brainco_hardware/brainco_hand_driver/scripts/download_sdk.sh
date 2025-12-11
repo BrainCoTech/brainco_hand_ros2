@@ -10,7 +10,7 @@ VERSION_FILE="${VENDOR_DIR}/VERSION"
 SDK_DIR="${VENDOR_DIR}/brainco_stark_sdk"
 
 # Configuration
-SDK_VERSION="v0.9.8"
+SDK_VERSION="v1.0.0"
 BASE_URL="https://app.brainco.cn/universal/bc-stark-sdk/libs/${SDK_VERSION}"
 
 # Colorful echo functions
