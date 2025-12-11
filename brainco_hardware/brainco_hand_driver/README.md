@@ -352,9 +352,7 @@ ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right
 ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=left
 
 # Or launch dual hand MoveIt
-ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py \
-    left_port:=/dev/ttyUSB0 \
-    right_port:=/dev/ttyUSB1
+ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py
 ```
 
 After launching, RViz will automatically open and display the dexterous hand visualization.

@@ -116,7 +116,7 @@ sudo minicom -D /dev/ttyUSB0
 ### 启动右手系统
 
 ```bash
-# Modbus 模式（默认）
+# Modbus 模式（默认，使用协议配置文件中的端口和从站 ID）
 ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right
 
 # CAN FD 模式（需要 ZLG USB-CAN FD 设备）
@@ -126,7 +126,7 @@ ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right protocol
 ### 启动左手系统
 
 ```bash
-# Modbus 模式（默认）
+# Modbus 模式（默认，使用协议配置文件中的端口和从站 ID）
 ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=left
 
 # CAN FD 模式（需要 ZLG USB-CAN FD 设备）
@@ -163,6 +163,8 @@ ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py
 | `hand_type` | `right` | 手型选择：`left` 或 `right` |
 | `protocol` | `modbus` | 通信协议：`modbus` 或 `canfd` |
 | `protocol_config_file` | `""` | 协议配置文件（YAML），留空则使用默认配置 |
+
+使用 Modbus 模式时，协议配置文件中的 `port` 和 `slave_id` 需要根据实际硬件连接情况进行修改。
 
 ## 控制接口
 
@@ -353,9 +355,7 @@ ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right
 ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=left
 
 # 或启动双手 MoveIt
-ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py \
-    left_port:=/dev/ttyUSB0 \
-    right_port:=/dev/ttyUSB1
+ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py
 ```
 
 启动后，RViz 会自动打开并显示灵巧手的可视化界面。
