@@ -1,5 +1,5 @@
 # This config file is used by ros2_control
-controller_manager:
+/right_hand/controller_manager:
   ros__parameters:
     update_rate: 100  # Hz
 
@@ -11,7 +11,7 @@ controller_manager:
       type: joint_trajectory_controller/JointTrajectoryController
 
 # Revo2 Right Hand Configuration 
-right_revo2_hand_controller:
+/right_hand/right_revo2_hand_controller:
   ros__parameters:
     joints:
       - right_thumb_metacarpal_joint
