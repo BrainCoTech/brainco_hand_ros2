@@ -8,7 +8,8 @@
       type: joint_state_broadcaster/JointStateBroadcaster
 
     left_revo2_hand_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      # 位置控制器（Position controller）：直接向各关节 position 接口下发目标值
+      type: position_controllers/JointGroupPositionController
 
 # Revo2 Left Hand Configuration 
 /left_hand/left_revo2_hand_controller:
@@ -20,14 +21,5 @@
       - left_middle_proximal_joint
       - left_ring_proximal_joint
       - left_pinky_proximal_joint
-
-    command_interfaces:
-      - position
-
-    state_interfaces:
-      - position
-      - velocity
-
-    action_monitor_rate: 20.0
-    allow_partial_joints_goal: false
+    interface_name: position
 
