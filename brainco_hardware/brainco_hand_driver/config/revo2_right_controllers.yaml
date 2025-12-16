@@ -15,8 +15,8 @@
 /right_hand/right_revo2_hand_controller:
   ros__parameters:
     joints:
-      - right_thumb_metacarpal_joint
       - right_thumb_proximal_joint
+      - right_thumb_metacarpal_joint
       - right_index_proximal_joint
       - right_middle_proximal_joint
       - right_ring_proximal_joint
