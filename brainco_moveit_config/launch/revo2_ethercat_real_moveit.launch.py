@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Real Hardware-MoveIt 整合 Launch 文件 - Revo2 单手
+Real Hardware-MoveIt 整合 Launch 文件 - Revo2 单手 (EtherCAT)
 启动 Revo2 灵巧手的真机控制 + MoveIt 运动规划系统
 
 此 launch 文件整合了：
@@ -13,7 +13,6 @@ Real Hardware-MoveIt 整合 Launch 文件 - Revo2 单手
 - 通过 controller_manager 管理控制器
 - 支持 MoveIt 的所有规划和执行功能
 - 支持左手和右手配置
-- 所有配置在本 package 内，无外部依赖
 
 Launch 参数：
 - hand_type: 手的类型（left/right，默认: right）
@@ -27,11 +26,9 @@ from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler
-from launch.actions import SetEnvironmentVariable, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -50,7 +47,7 @@ def generate_moveit_nodes(context, *args, **kwargs):
     should_publish = LaunchConfiguration("publish_monitored_planning_scene")
     
     # 包路径
-    pkg_path = get_package_share_directory('brainco_hand_ethercat_driver')
+    pkg_path = get_package_share_directory('brainco_moveit_config')
     
     # 根据 hand_type 加载对应的 MoveIt 配置
     if hand_type_value == 'left':
@@ -68,9 +65,9 @@ def generate_moveit_nodes(context, *args, **kwargs):
         kinematics_file = "config/revo2_right_kinematics.yaml"
         urdf_file = "config/revo2_right.urdf.xacro"
 
-    # 加载 MoveIt 配置
+    # 加载 MoveIt 配置（使用 brainco_moveit_config）
     moveit_config = (
-        MoveItConfigsBuilder(robot_name, package_name="brainco_hand_ethercat_driver")
+        MoveItConfigsBuilder(robot_name, package_name="brainco_moveit_config")
         .robot_description_semantic(file_path=srdf_file)
         .trajectory_execution(file_path=trajectory_file)
         .joint_limits(file_path=joint_limits_file)
@@ -78,7 +75,7 @@ def generate_moveit_nodes(context, *args, **kwargs):
         .to_moveit_configs()
     )
     
-    # Robot Description（真机配置，使用 ros2_control）
+    # Robot Description（真机配置，使用 EtherCAT ros2_control）
     robot_description_content = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]),
         ' ',
@@ -178,11 +175,8 @@ def generate_launch_description():
     hand_type = LaunchConfiguration('hand_type')
     ctrl_param_duration_ms = LaunchConfiguration('ctrl_param_duration_ms')
 
-    # ===== 包路径 =====
-    pkg_path = get_package_share_directory('brainco_hand_ethercat_driver')
-    
     # ===== Robot Description =====
-    # 使用本 package 的 URDF 配置（包含 ros2_control）
+    # 使用 EtherCAT driver 的 URDF 配置（包含 ros2_control）
     robot_description_content = Command([
         PathJoinSubstitution([FindExecutable(name='xacro')]),
         ' ',
@@ -217,6 +211,9 @@ def generate_launch_description():
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controllers_yaml],
+        remappings=[
+            ("~/robot_description", "/robot_description"),
+        ],
         output="screen"
     )
 
@@ -239,7 +236,7 @@ def generate_launch_description():
     # ===== 静态虚拟关节 TF 发布器 =====
     # 读取虚拟关节信息用于发布静态 TF （左右手虚拟关节相同）
     moveit_config_temp = (
-        MoveItConfigsBuilder("revo2_right", package_name="brainco_hand_ethercat_driver")
+        MoveItConfigsBuilder("revo2_right", package_name="brainco_moveit_config")
         .robot_description_semantic(file_path="config/revo2_right.srdf")
         .trajectory_execution(file_path="config/revo2_right_moveit_controllers.yaml")
         .joint_limits(file_path="config/revo2_right_joint_limits.yaml")
@@ -303,3 +300,4 @@ def generate_launch_description():
     )
     
     return ld
+

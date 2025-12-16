@@ -11,7 +11,6 @@ BrainCo Hand EtherCAT 驱动包为 BrainCo Revo2 灵巧手提供基于 EtherCAT 
 - **EtherCAT 通信**：与 Revo2 灵巧手硬件的实时 EtherCAT 通信
 - **ros2_control 集成**：完整的 ros2_control 硬件接口实现
 - **双手支持**：支持左手和右手配置
-- **MoveIt 集成**：可选的 MoveIt 集成用于运动规划
 - **实时控制**：高频控制循环，实现精确的手指操控
 - **状态反馈**：所有关节的位置、速度反馈
 - **轨迹控制**：关节轨迹控制器支持，实现平滑运动执行
@@ -107,16 +106,6 @@ ros2 launch brainco_hand_ethercat_driver revo2_system.launch.py hand_type:=left
 ros2 launch brainco_hand_ethercat_driver revo2_system.launch.py 2>&1 | grep -v "\[ros2_control_node-1\] Domain"
 ```
 
-### 启动 MoveIt 集成
-
-```bash
-# 右手带 MoveIt
-ros2 launch brainco_hand_ethercat_driver revo2_real_moveit.launch.py hand_type:=right
-
-# 左手带 MoveIt
-ros2 launch brainco_hand_ethercat_driver revo2_real_moveit.launch.py hand_type:=left
-```
-
 ### Launch 参数
 
 #### 基础系统参数（revo2_system.launch.py）
@@ -127,15 +116,6 @@ ros2 launch brainco_hand_ethercat_driver revo2_real_moveit.launch.py hand_type:=
 | `prefix` | `""` | 关节名称前缀，用于多机器人设置 |
 | `ctrl_param_duration_ms` | `20` | 运动时间参数，单位毫秒（1ms = 最快速度） |
 | `robot_controller` | 自动生成 | 控制器名称（根据 hand_type 自动生成） |
-
-#### MoveIt 集成参数（revo2_real_moveit.launch.py）
-
-| 参数 | 默认值 | 描述 |
-|------|--------|------|
-| `hand_type` | `right` | 手型选择：`left` 或 `right` |
-| `ctrl_param_duration_ms` | `10` | 运动时间参数，单位毫秒（1ms = 最快速度） |
-| `use_rviz` | `true` | 是否启动 RViz 可视化 |
-| `publish_monitored_planning_scene` | `true` | 是否发布监控的规划场景 |
 
 ## 控制接口
 
@@ -459,8 +439,7 @@ state interfaces
 ```
 brainco_hand_ethercat_driver/
 ├── launch/                                      # Launch 文件
-│   ├── revo2_system.launch.py                    # 主系统启动文件
-│   └── revo2_real_moveit.launch.py               # MoveIt 集成启动文件
+│   └── revo2_system.launch.py                    # 主系统启动文件
 ├── config/                                      # 配置文件
 ├── include/                                     # 头文件
 │   └── revo2_ethercat_plugins/                  # 插件头文件

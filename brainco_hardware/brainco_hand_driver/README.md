@@ -15,7 +15,6 @@ The BrainCo Hand Driver package provides a ROS2 hardware interface for BrainCo R
 - **Communication Protocol**: Support for Modbus and CAN FD dual protocols
 - **ros2_control Integration**: Full ros2_control hardware interface implementation
 - **Dual Hand Support**: Support for both left and right hand configurations, as well as simultaneous dual-hand control
-- **MoveIt Integration**: Optional MoveIt integration for motion planning
 - **Real-time Control**: High-frequency control loop for precise finger manipulation
 - **State Feedback**: Position and velocity feedback from all joints
 - **Trajectory Control**: Joint trajectory controller support for smooth motion execution
@@ -45,7 +44,6 @@ Make sure you have the following packages installed:
 # ROS2 dependencies
 sudo apt install ros-humble-controller-manager ros-humble-joint-trajectory-controller
 sudo apt install ros-humble-joint-state-broadcaster ros-humble-robot-state-publisher
-sudo apt install ros-humble-moveit ros-humble-moveit-ros-planning-interface
 
 # Python dependencies
 pip3 install rclpy trajectory_msgs sensor_msgs control_msgs
@@ -131,29 +129,6 @@ ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=left
 
 # CAN FD mode (requires ZLG USB-CAN FD device)
 ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=left protocol:=canfd
-```
-
-### Launch MoveIt Integration
-
-```bash
-# Right hand with MoveIt (Modbus mode)
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right
-
-# Right hand with MoveIt (CAN FD mode)
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right protocol:=canfd
-
-# Left hand with MoveIt (Modbus mode)
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=left
-
-# Left hand with MoveIt (CAN FD mode)
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=left protocol:=canfd
-```
-
-### Launch Dual Hand System (MoveIt)
-
-```bash
-# Dual hand system
-ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py
 ```
 
 ### Launch Parameters
@@ -346,13 +321,13 @@ First, launch the MoveIt integration:
 
 ```bash
 # Launch right hand MoveIt
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right
 
 # Or launch left hand MoveIt
 ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=left
 
 # Or launch dual hand MoveIt
-ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py \
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py \
     left_port:=/dev/ttyUSB0 \
     right_port:=/dev/ttyUSB1
 ```
@@ -533,12 +508,9 @@ state interfaces
 ```
 brainco_hand_driver/
 ├── launch/                                      # Launch files
-│   ├── revo2_system.launch.py                    # Main system launch
-│   ├── revo2_real_moveit.launch.py               # MoveIt integration launch (single hand)
-│   └── dual_revo2_real_moveit.launch.py          # MoveIt integration launch (dual hand)
+│   └── revo2_system.launch.py                    # Main system launch
 ├── config/                                      # Configuration files
 │   ├── protocol_*.yaml                          # Protocol configuration files (Modbus/CAN FD)
-│   ├── xxx.srdf                                 # MoveIt semantic description files
 │   ├── xxx.urdf.xacro                           # URDF XACRO files
 │   ├── xxx.ros2_control.xacro                   # ros2_control configuration
 │   ├── xxx_controllers.yaml                     # Controller configuration

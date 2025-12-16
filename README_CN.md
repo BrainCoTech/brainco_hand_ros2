@@ -179,12 +179,57 @@ rosdep update
 # 安装所有依赖项
 rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 
-# 构建所有功能包
+# 构建所有功能包（默认配置，不启用 CAN FD）
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --continue-on-error
 
 # 激活工作空间
 source install/setup.bash
 ```
+
+#### 编译选项说明
+
+**方式一：全部编译（推荐）**
+
+**默认构建（不启用 CAN FD 支持）**
+
+默认情况下，`brainco_hand_driver` 包不包含 CAN FD 支持，以减少依赖和编译时间：
+
+```bash
+# 构建所有包（默认，不启用 CAN FD）
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+# 或者更简洁的命令
+colcon build --symlink-install
+```
+
+**启用 CAN FD 支持（全部编译）**
+
+如果需要使用 CAN FD 通信协议，需要在编译时启用 `ENABLE_CANFD` 选项：
+
+```bash
+# 构建所有包并启用 CAN FD 支持
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DENABLE_CANFD=ON
+
+# 或者更简洁的命令
+colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON
+```
+
+**方式二：单独编译 brainco_hand_driver 包**
+
+如果只想编译 `brainco_hand_driver` 包：
+
+```bash
+# 构建单个包（默认，不启用 CAN FD）
+colcon build --packages-select brainco_hand_driver --symlink-install
+
+# 构建单个包并启用 CAN FD 支持
+colcon build --packages-select brainco_hand_driver --cmake-args -DENABLE_CANFD=ON --symlink-install
+```
+
+**注意事项**：
+- 启用 CAN FD 支持需要 ZLG USB-CAN FD 驱动库，请确保已正确放置到 `brainco_hardware/brainco_hand_driver/vendor/usbcanfd_libusb_x64_1.0.12_251029/` 目录
+- 如果未启用 CAN FD 支持，使用 CAN FD 协议启动节点时会报错
+- 默认配置（不启用 CAN FD）可以正常使用 Modbus 和 EtherCAT 协议
 
 ## 使用场景
 
@@ -193,14 +238,14 @@ source install/setup.bash
 如果您有真实的 Revo2 灵巧手硬件，可以使用 `brainco_hand_driver` 进行控制：
 
 ```bash
-# 启动右手系统（Modbus 模式）
+# 启动右手系统（Modbus 模式） 
 ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right
 
 # 启动右手系统（带 MoveIt）
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right
 
 # 启动双手系统
-ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py
 ```
 
 **详细说明**：请参阅 [brainco_hardware/brainco_hand_driver/README_CN.md](brainco_hardware/brainco_hand_driver/README_CN.md)

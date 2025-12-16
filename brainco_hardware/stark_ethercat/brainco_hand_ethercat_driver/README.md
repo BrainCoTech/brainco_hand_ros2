@@ -11,7 +11,6 @@ The BrainCo Hand EtherCAT Driver package provides a ROS2 hardware interface for 
 - **EtherCAT Communication**: Real-time EtherCAT communication with Revo2 hand hardware
 - **ros2_control Integration**: Full ros2_control hardware interface implementation
 - **Dual Hand Support**: Support for both left and right hand configurations
-- **MoveIt Integration**: Optional MoveIt integration for motion planning
 - **Real-time Control**: High-frequency control loop for precise finger manipulation
 - **State Feedback**: Position, velocity, and effort feedback from all joints
 - **Trajectory Control**: Joint trajectory controller support for smooth motion execution
@@ -114,15 +113,6 @@ All launch files support the following parameters:
 | `prefix` | `""` | Prefix for joint names, useful for multi-robot setup |
 | `ctrl_param_duration_ms` | `20` | Motion time parameter in milliseconds (1ms = fastest speed) |
 | `robot_controller` | Auto-generated | Controller name (auto-generated based on hand_type) |
-
-#### MoveIt Integration Parameters (revo2_real_moveit.launch.py)
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `hand_type` | `right` | Hand type: `left` or `right` |
-| `ctrl_param_duration_ms` | `10` | Motion time parameter in milliseconds (1ms = fastest speed) |
-| `use_rviz` | `true` | Whether to launch RViz visualization |
-| `publish_monitored_planning_scene` | `true` | Whether to publish monitored planning scene |
 
 ## Control Interface
 
@@ -445,27 +435,14 @@ state interfaces
 ```
 brainco_hand_ethercat_driver/
 ├── launch/                                      # Launch files
-│   ├── revo2_system.launch.py                    # Main system launch
-│   └── revo2_real_moveit.launch.py               # MoveIt integration launch
+│   └── revo2_system.launch.py                    # Main system launch
 ├── config/                                      # Configuration files
 │   ├── revo2_left.urdf.xacro                    # Left hand URDF
 │   ├── revo2_left.ros2_control.xacro            # Left hand ros2_control
-│   ├── revo2_left.srdf                          # Left hand SRDF
 │   ├── revo2_left_controllers.yaml              # Left hand controllers
-│   ├── revo2_left_initial_positions.yaml        # Left hand initial positions
-│   ├── revo2_left_joint_limits.yaml             # Left hand joint limits
-│   ├── revo2_left_kinematics.yaml               # Left hand kinematics
-│   ├── revo2_left_moveit_controllers.yaml       # Left hand MoveIt controllers
 │   ├── revo2_right.urdf.xacro                   # Right hand URDF
 │   ├── revo2_right.ros2_control.xacro           # Right hand ros2_control
-│   ├── revo2_right.srdf                         # Right hand SRDF
 │   ├── revo2_right_controllers.yaml             # Right hand controllers
-│   ├── revo2_right_initial_positions.yaml       # Right hand initial positions
-│   ├── revo2_right_joint_limits.yaml            # Right hand joint limits
-│   ├── revo2_right_kinematics.yaml              # Right hand kinematics
-│   ├── revo2_right_moveit_controllers.yaml     # Right hand MoveIt controllers
-│   ├── moveit.rviz                              # RViz configuration
-│   └── pilz_cartesian_limits.yaml                # Pilz planner limits
 ├── include/                                     # Header files
 │   └── revo2_ethercat_plugins/                  # Plugin headers
 │       ├── execute_command.hpp

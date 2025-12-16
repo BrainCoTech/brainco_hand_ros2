@@ -15,7 +15,6 @@ BrainCo Hand Driver 驱动包为 BrainCo Revo2 灵巧手提供基于 Modbus/CAN 
 - **通信协议**：支持 Modbus 和 CAN FD 双协议
 - **ros2_control 集成**：完整的 ros2_control 硬件接口实现
 - **双手支持**：支持左手和右手配置，以及双手同时控制
-- **MoveIt 集成**：可选的 MoveIt 集成用于运动规划
 - **实时控制**：高频控制循环，实现精确的手指操控
 - **状态反馈**：所有关节的位置、速度反馈
 - **轨迹控制**：关节轨迹控制器支持，实现平滑运动执行
@@ -45,7 +44,6 @@ BrainCo Hand Driver 驱动包为 BrainCo Revo2 灵巧手提供基于 Modbus/CAN 
 # ROS2 依赖项
 sudo apt install ros-humble-controller-manager ros-humble-joint-trajectory-controller
 sudo apt install ros-humble-joint-state-broadcaster ros-humble-robot-state-publisher
-sudo apt install ros-humble-moveit ros-humble-moveit-ros-planning-interface
 
 # Python 依赖项
 pip3 install rclpy trajectory_msgs sensor_msgs control_msgs
@@ -69,11 +67,40 @@ cd ~/brainco_ws
 # 安装依赖项
 rosdep install --ignore-src --from-paths src -y -r
 
-# 构建功能包
-colcon build --packages-select brainco_hand_driver --symlink-install
+# 方式一：全部编译（默认禁用 CAN FD 支持，仅支持 Modbus）
+colcon build --symlink-install
+
+# 方式二：全部编译并启用 CAN FD 支持
+colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON
+
+# 方式三：全部编译（Release 模式，启用 CAN FD 支持）
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DENABLE_CANFD=ON
+
+# 方式四：全部编译（Release 模式，禁用 CAN FD 支持）
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 # Source 工作空间
 source install/setup.bash
+```
+
+**编译选项说明：**
+- **默认行为**：`ENABLE_CANFD=OFF`（禁用 CAN FD 支持），仅支持 Modbus 模式，不需要 ZLG 库文件
+- **启用 CAN FD**：使用 `-DENABLE_CANFD=ON`，需要 ZLG USB-CAN FD 库文件
+- **构建模式**：可选的 `-DCMAKE_BUILD_TYPE=Release` 用于 Release 模式构建
+
+**单独编译 brainco_hand_driver 包：**
+
+如果只想编译 `brainco_hand_driver` 包：
+
+```bash
+# 单独编译（默认禁用 CAN FD）
+colcon build --packages-select brainco_hand_driver --symlink-install
+
+# 单独编译并启用 CAN FD
+colcon build --packages-select brainco_hand_driver --cmake-args -DENABLE_CANFD=ON --symlink-install
+
+# 单独编译（Release 模式，启用 CAN FD）
+colcon build --packages-select brainco_hand_driver --cmake-args -DCMAKE_BUILD_TYPE=Release -DENABLE_CANFD=ON --symlink-install
 ```
 
 ### 4. 验证安装
@@ -133,28 +160,53 @@ ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=left
 ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=left protocol:=canfd
 ```
 
-### 启动 MoveIt 集成
+### 启动双手系统（同时控制）
+
+双手系统支持同时控制左右两只手。有两种方式：
+
+#### 方式一：使用 Modbus 模式（单个节点）
+
+使用专门的双手启动文件，在单个节点中同时控制左右手：
 
 ```bash
-# 右手带 MoveIt（Modbus 模式）
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right
+# 使用默认配置（左手：/dev/ttyUSB0，右手：/dev/ttyUSB1）
+ros2 launch brainco_hand_driver dual_revo2_system.launch.py
 
-# 右手带 MoveIt（CAN FD 模式）
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right protocol:=canfd
-
-# 左手带 MoveIt（Modbus 模式）
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=left
-
-# 左手带 MoveIt（CAN FD 模式）
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=left protocol:=canfd
+# 自定义协议配置文件
+ros2 launch brainco_hand_driver dual_revo2_system.launch.py \
+    left_protocol_config_file:=/path/to/protocol_modbus_left.yaml \
+    right_protocol_config_file:=/path/to/protocol_modbus.yaml
 ```
 
-### 启动双手系统（MoveIt）
+**注意：** 
+- 默认配置中，左手使用 `/dev/ttyUSB0`（slave_id: 126），右手使用 `/dev/ttyUSB1`（slave_id: 127）
+- 如果您的设备连接在不同的串口，请修改 `protocol_modbus_left.yaml` 和 `protocol_modbus.yaml` 中的 `port` 参数
+- 确保左右手使用不同的 `slave_id`（例如左手 126，右手 127）
+
+#### 方式二：使用 CAN FD 模式（推荐用于多手控制）
+
+CAN FD 模式可以在单个节点中同时控制多只手，适合需要控制多只手的场景：
 
 ```bash
-# 双手系统 Modbus 模式（默认）
-ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py
+# 双手系统 CAN FD 模式
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py protocol:=canfd
 ```
+
+#### 方式三：启动两个独立的节点（Modbus 模式）
+
+如果需要分别控制左右手，也可以启动两个独立的节点：
+
+**终端 1 - 启动左手：**
+```bash
+ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=left
+```
+
+**终端 2 - 启动右手：**
+```bash
+ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right
+```
+
+**注意：** 使用此方式时，需要确保左右手连接到不同的串口（例如 `/dev/ttyUSB0` 和 `/dev/ttyUSB1`），并在各自的协议配置文件中指定正确的端口。
 
 ### Launch 参数
 
@@ -337,76 +389,107 @@ ros2 topic pub --once /left_revo2_hand_controller/joint_trajectory \
   }'
 ```
 
-## 使用 MoveIt 控制灵巧手
+### 双手同时控制示例
 
-MoveIt 提供了图形化界面，可以方便地规划和执行灵巧手的运动。
+当双手系统启动后，可以同时控制左右手：
 
-### 启动 MoveIt
-
-首先启动 MoveIt 集成：
+**同时控制双手（Topic 方式）：**
 
 ```bash
-# 启动右手 MoveIt
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right
+# 终端 1 - 控制左手
+ros2 topic pub --once /left_revo2_hand_controller/joint_trajectory \
+  trajectory_msgs/msg/JointTrajectory \
+  '{
+    joint_names: [
+      "left_thumb_proximal_joint",
+      "left_thumb_metacarpal_joint",
+      "left_index_proximal_joint",
+      "left_middle_proximal_joint",
+      "left_ring_proximal_joint",
+      "left_pinky_proximal_joint"
+    ],
+    points: [{
+      positions: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+      time_from_start: {sec: 2}
+    }]
+  }'
 
-# 或启动左手 MoveIt
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=left
-
-# 或启动双手 MoveIt
-ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py \
-    left_port:=/dev/ttyUSB0 \
-    right_port:=/dev/ttyUSB1
+# 终端 2 - 同时控制右手
+ros2 topic pub --once /right_revo2_hand_controller/joint_trajectory \
+  trajectory_msgs/msg/JointTrajectory \
+  '{
+    joint_names: [
+      "right_thumb_proximal_joint",
+      "right_thumb_metacarpal_joint",
+      "right_index_proximal_joint",
+      "right_middle_proximal_joint",
+      "right_ring_proximal_joint",
+      "right_pinky_proximal_joint"
+    ],
+    points: [{
+      positions: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+      time_from_start: {sec: 2}
+    }]
+  }'
 ```
 
-启动后，RViz 会自动打开并显示灵巧手的可视化界面。
+**同时控制双手（Action 方式）：**
 
-### 1. 选择运动组
+```bash
+# 终端 1 - 控制左手
+ros2 action send_goal /left_revo2_hand_controller/follow_joint_trajectory \
+  control_msgs/action/FollowJointTrajectory \
+  '{
+    trajectory: {
+      joint_names: [
+        "left_thumb_proximal_joint",
+        "left_thumb_metacarpal_joint",
+        "left_index_proximal_joint",
+        "left_middle_proximal_joint",
+        "left_ring_proximal_joint",
+        "left_pinky_proximal_joint"
+      ],
+      points: [{
+        positions: [0.5, 0.0, 1.4, 1.4, 1.4, 1.4],
+        time_from_start: {sec: 3}
+      }]
+    }
+  }'
 
-在 RViz 的左侧面板中，找到 "Motion Planning" 插件。首先需要选择要控制的运动组：
+# 终端 2 - 同时控制右手
+ros2 action send_goal /right_revo2_hand_controller/follow_joint_trajectory \
+  control_msgs/action/FollowJointTrajectory \
+  '{
+    trajectory: {
+      joint_names: [
+        "right_thumb_proximal_joint",
+        "right_thumb_metacarpal_joint",
+        "right_index_proximal_joint",
+        "right_middle_proximal_joint",
+        "right_ring_proximal_joint",
+        "right_pinky_proximal_joint"
+      ],
+      points: [{
+        positions: [0.5, 0.0, 1.4, 1.4, 1.4, 1.4],
+        time_from_start: {sec: 3}
+      }]
+    }
+  }'
+```
 
-![选择运动组](doc/moveit_change_group.png)
+**监控双手状态：**
 
-- 对于单手模式：选择 `revo2_left_hand` 或 `revo2_right_hand`
-- 对于双手模式：可以选择 `revo2_left_hand` 或 `revo2_right_hand` 分别控制左右手
+```bash
+# 查看所有关节状态（包含左右手）
+ros2 topic echo /joint_states
 
-### 2. 设置目标
-
-在 "Motion Planning" 面板中，切换到 "Planning" 标签页，然后点击 "Query" 下的 "Select Goal State" 或直接使用 "Joint Values" 标签：
-
-![规划目标](doc/moveit_goal.png)
-
-MoveIt 提供了预定义的姿态，通过 `config/xxx.srdf` 定义和加载，可以在 "Planning" 标签页的 "Query" 部分选择：
-
-- **hand_open**：张开手
-- **hand_half_close**：半握
-- **hand_close**：握拳
-
-![设置关节值](doc/moveit_set_the_joints.png)
-
-
-
-### 3. 规划并执行运动
-
-设置好目标后，点击 "Plan & Execute" 按钮进行规划并执行：
-
-- **Plan**：规划从当前位置到目标位置的运动轨迹
-- **Execute**：执行规划好的轨迹，控制真实灵巧手运动
-- **Plan & Execute**：自动规划并执行
-
-规划成功后，您可以在 RViz 中看到：
-- 绿色轨迹：规划的运动路径
-- 橙色轨迹：已执行的路径
-
-### 4. 执行结果
-
-点击 "Execute" 后，MoveIt 会将轨迹发送给控制器，真实灵巧手会按照规划的轨迹运动：
-
-![执行结果](doc/moveit_executed.png)
-
-执行过程中，您可以：
-- 在 RViz 中实时观察灵巧手的运动
-- 通过 `/joint_states` 话题监控关节状态
-- 使用 `ros2 topic echo /joint_states` 查看详细的关节反馈
+# 列出所有控制器
+ros2 control list_controllers
+# 应该看到：
+# left_revo2_hand_controller   joint_trajectory_controller/JointTrajectoryController  active
+# right_revo2_hand_controller  joint_trajectory_controller/JointTrajectoryController  active
+# joint_state_broadcaster       joint_state_broadcaster/JointStateBroadcaster          active
+```
 
 ## 监控和调试
 
@@ -445,10 +528,26 @@ ros2 topic echo /joint_states
 /robot_state_publisher
 ```
 
-#### 控制器状态
+#### 核心节点列表（双手配置）
+```bash
+/controller_manager
+/joint_state_broadcaster
+/left_revo2_hand_controller
+/right_revo2_hand_controller
+/robot_state_publisher
+```
+
+#### 控制器状态（右手配置）
 ```bash
 joint_state_broadcaster      joint_state_broadcaster/JointStateBroadcaster          active
 right_revo2_hand_controller   joint_trajectory_controller/JointTrajectoryController  active
+```
+
+#### 控制器状态（双手配置）
+```bash
+joint_state_broadcaster      joint_state_broadcaster/JointStateBroadcaster          active
+left_revo2_hand_controller   joint_trajectory_controller/JointTrajectoryController   active
+right_revo2_hand_controller  joint_trajectory_controller/JointTrajectoryController  active
 ```
 
 #### 硬件组件（右手配置）
@@ -500,8 +599,24 @@ state interfaces
 /tf_static
 ```
 
+#### 核心话题列表（双手配置）
+```bash
+/joint_states
+/left_revo2_hand_controller/joint_trajectory
+/right_revo2_hand_controller/joint_trajectory
+/robot_description
+/tf
+/tf_static
+```
+
 #### 核心动作列表（右手配置）
 ```bash
+/right_revo2_hand_controller/follow_joint_trajectory
+```
+
+#### 核心动作列表（双手配置）
+```bash
+/left_revo2_hand_controller/follow_joint_trajectory
 /right_revo2_hand_controller/follow_joint_trajectory
 ```
 
@@ -534,12 +649,9 @@ state interfaces
 ```
 brainco_hand_driver/
 ├── launch/                                      # Launch 文件
-│   ├── revo2_system.launch.py                    # 主系统启动文件
-│   ├── revo2_real_moveit.launch.py              # MoveIt 集成启动文件（单手）
-│   └── dual_revo2_real_moveit.launch.py         # MoveIt 集成启动文件（双手）
+│   └── revo2_system.launch.py                    # 主系统启动文件
 ├── config/                                      # 配置文件
 │   ├── protocol_*.yaml                          # 协议配置文件（Modbus/CAN FD）
-│   ├── xxx.srdf                                 # MoveIt 语义描述文件
 │   ├── xxx.urdf.xacro                           # URDF XACRO 文件
 │   ├── xxx.ros2_control.xacro                   # ros2_control 配置
 │   ├── xxx_controllers.yaml                     # 控制器配置

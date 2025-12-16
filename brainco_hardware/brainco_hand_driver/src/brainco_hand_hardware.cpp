@@ -305,6 +305,7 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
       protocol_lower.begin(), protocol_lower.end(), protocol_lower.begin(),
       [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
 
+#if ENABLE_CANFD
     if (protocol_lower == "canfd" || protocol_lower == "can" || protocol_lower == "can-fd")
     {
       config_.transport.protocol = Protocol::kCanfd;
@@ -313,6 +314,18 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
     {
       config_.transport.protocol = Protocol::kModbus;
     }
+#else
+    // CAN FD support is disabled at compile time
+    if (protocol_lower == "canfd" || protocol_lower == "can" || protocol_lower == "can-fd")
+    {
+      BRAINCO_HAND_LOG_ERROR("CAN FD protocol requested but CAN FD support is disabled at compile time. Please rebuild with ENABLE_CANFD=ON.");
+      config_.transport.protocol = Protocol::kModbus;
+    }
+    else
+    {
+      config_.transport.protocol = Protocol::kModbus;
+    }
+#endif
 
     constexpr uint8_t kMaxSlaveId{247};
     const auto slave_id_value = std::stoul(get_parameter("slave_id", "126"));
@@ -343,6 +356,7 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
         parse_bool(get_parameter("auto_detect_quick", "true"), true);
       config_.transport.modbus.auto_detect_port = get_parameter("auto_detect_port", "");
     }
+#if ENABLE_CANFD
     else
     {
       config_.transport.canfd.device_type = static_cast<uint32_t>(std::stoul(
@@ -382,6 +396,7 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
       config_.transport.canfd.data.smp = static_cast<uint8_t>(std::stoul(
         get_parameter("can_data_smp", std::to_string(config_.transport.canfd.data.smp))));
     }
+#endif
 
     const auto duration_value = std::stoul(get_parameter("ctrl_param_duration_ms", "10"));
     config_.ctrl_param_duration_ms = static_cast<uint16_t>(
@@ -446,6 +461,7 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
         ? "<auto>"
         : config_.transport.modbus.auto_detect_port.c_str());
   }
+#if ENABLE_CANFD
   else
   {
     BRAINCO_HAND_LOG_INFO(
@@ -455,6 +471,7 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
       config_.transport.canfd.rx_wait_time, config_.transport.canfd.rx_buffer_size,
       config_.transport.canfd.master_id);
   }
+#endif
 
   BRAINCO_HAND_LOG_INFO(
     "position_command_scale=%f position_state_scale=%f velocity_state_scale=%f "

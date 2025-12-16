@@ -1,9 +1,9 @@
-# Default initial positions for revo2_right's ros2_control fake system
+# Default initial positions for revo2_right's ros2_control system (EtherCAT)
 
 initial_positions:
   # Revo2 right hand joint initial positions
   right_thumb_metacarpal_joint: 0   # Thumb metacarpal joint
-  right_thumb_proximal_joint: 0   # Thumb proximal joint
+  right_thumb_proximal_joint: 0.1   # Thumb proximal joint (slightly open)
   right_index_proximal_joint: 0     # Index finger proximal joint
   right_middle_proximal_joint: 0    # Middle finger proximal joint
   right_ring_proximal_joint: 0      # Ring finger proximal joint

@@ -193,10 +193,10 @@ If you have real Revo2 dexterous hand hardware, you can use `brainco_hand_driver
 ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right
 
 # Launch right hand system (with MoveIt)
-ros2 launch brainco_hand_driver revo2_real_moveit.launch.py hand_type:=right
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right
 
 # Launch dual-hand system
-ros2 launch brainco_hand_driver dual_revo2_real_moveit.launch.py
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py
 ```
 
 **Detailed Instructions**: Please refer to [brainco_hardware/brainco_hand_driver/README_CN.md](brainco_hardware/brainco_hand_driver/README_CN.md)

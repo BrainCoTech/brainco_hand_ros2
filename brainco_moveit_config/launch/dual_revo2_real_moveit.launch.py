@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Revo2 灵巧手真机 + MoveIt 启动文件（支持 Modbus/CAN FD）。"""
+"""Revo2 双手灵巧手真机 + MoveIt 启动文件（Modbus 驱动）。"""
 
 from pathlib import Path
 
@@ -8,14 +8,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import (
-    Command,
-    FindExecutable,
-    IfElseSubstitution,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-    PythonExpression,
-)
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
@@ -24,80 +17,37 @@ from moveit_configs_utils import MoveItConfigsBuilder
 from moveit_configs_utils.launch_utils import DeclareBooleanLaunchArg
 from srdfdom.srdf import SRDF
 
-def build_xacro_command_for_context(hand_type_value: str, protocol_config_path: str) -> list:
+
+def build_xacro_command() -> list:
+    """构建 xacro 命令，用于生成双手 URDF。"""
     command = [
         PathJoinSubstitution([FindExecutable(name="xacro")]),
         " ",
         PathJoinSubstitution([
             FindPackageShare("brainco_hand_driver"),
-            f"config/revo2_{hand_type_value}.urdf.xacro",
+            "config/dual_revo2.urdf.xacro",
         ]),
-    ]
-    command.extend([" ", f"protocol_config_file:={protocol_config_path}"])
-    return command
-
-
-def build_xacro_command(
-    hand_type_substitution: LaunchConfiguration,
-    protocol_config_substitution,
-) -> list:
-    command = [
-        PathJoinSubstitution([FindExecutable(name="xacro")]),
         " ",
-        PathJoinSubstitution([
-            FindPackageShare("brainco_hand_driver"),
-            "config",
-            ["revo2_", hand_type_substitution, ".urdf.xacro"],
-        ]),
+        "left_protocol_config_file:=", LaunchConfiguration("left_protocol_config_file"),
+        " ",
+        "right_protocol_config_file:=", LaunchConfiguration("right_protocol_config_file"),
     ]
-    command.extend([" ", "protocol_config_file:=", protocol_config_substitution])
     return command
 
 
 def generate_moveit_nodes(context, *args, **kwargs):  # noqa: D401
-    """根据 hand_type 生成 MoveIt 相关节点。"""
-
-    hand_type_value = LaunchConfiguration("hand_type").perform(context)
+    """生成 MoveIt 相关节点。"""
     use_rviz = LaunchConfiguration("use_rviz")
     should_publish = LaunchConfiguration("publish_monitored_planning_scene")
 
-    protocol_value = LaunchConfiguration("protocol").perform(context)
-    protocol_config_override = LaunchConfiguration("protocol_config_file").perform(context)
-
-    if protocol_config_override:
-        protocol_config_path = protocol_config_override
-    else:
-        if hand_type_value.lower() == "left":
-            filename = (
-                "protocol_canfd_left.yaml"
-                if protocol_value.lower() == "canfd"
-                else "protocol_modbus_left.yaml"
-            )
-        else:
-            filename = (
-                "protocol_canfd.yaml"
-                if protocol_value.lower() == "canfd"
-                else "protocol_modbus.yaml"
-            )
-        protocol_config_path = str(
-            Path(get_package_share_directory("brainco_hand_driver")) / "config" / filename
-        )
-
-    if hand_type_value == "left":
-        robot_name = "revo2_left"
-        srdf_file = "config/revo2_left.srdf"
-        trajectory_file = "config/revo2_left_moveit_controllers.yaml"
-        joint_limits_file = "config/revo2_left_joint_limits.yaml"
-        kinematics_file = "config/revo2_left_kinematics.yaml"
-    else:
-        robot_name = "revo2_right"
-        srdf_file = "config/revo2_right.srdf"
-        trajectory_file = "config/revo2_right_moveit_controllers.yaml"
-        joint_limits_file = "config/revo2_right_joint_limits.yaml"
-        kinematics_file = "config/revo2_right_kinematics.yaml"
+    robot_name = "dual_revo2"
+    srdf_file = "config/dual_revo2.srdf"
+    trajectory_file = "config/dual_revo2_moveit_controllers.yaml"
+    joint_limits_file = "config/dual_revo2_joint_limits.yaml"
+    kinematics_file = "config/dual_revo2_kinematics.yaml"
 
     moveit_config = (
-        MoveItConfigsBuilder(robot_name, package_name="brainco_hand_driver")
+        MoveItConfigsBuilder(robot_name, package_name="brainco_moveit_config")
         .robot_description_semantic(file_path=srdf_file)
         .trajectory_execution(file_path=trajectory_file)
         .joint_limits(file_path=joint_limits_file)
@@ -105,12 +55,10 @@ def generate_moveit_nodes(context, *args, **kwargs):  # noqa: D401
         .to_moveit_configs()
     )
 
-    robot_description_content = Command(
-        build_xacro_command_for_context(hand_type_value, protocol_config_path)
-    )
+    robot_description_content = Command(build_xacro_command())
     robot_description = {"robot_description": ParameterValue(robot_description_content, value_type=str)}
 
-    pkg_path = get_package_share_directory("brainco_hand_driver")
+    pkg_path = get_package_share_directory("brainco_moveit_config")
     default_rviz_config = str(Path(pkg_path) / "config" / "moveit.rviz")
 
     move_group_configuration = {
@@ -163,15 +111,9 @@ def generate_moveit_nodes(context, *args, **kwargs):  # noqa: D401
 
 
 def generate_launch_description():  # noqa: D401
-    """生成 Revo2 Modbus 真机 + MoveIt 的启动描述。"""
+    """生成 Revo2 双手 Modbus 真机 + MoveIt 的启动描述。"""
 
     declared_arguments = [
-        DeclareLaunchArgument(
-            "hand_type",
-            default_value="right",
-            description="手的类型：left 或 right",
-            choices=["left", "right"],
-        ),
         DeclareBooleanLaunchArg(
             "use_rviz",
             default_value=True,
@@ -183,60 +125,32 @@ def generate_launch_description():  # noqa: D401
             description="是否发布监控的规划场景",
         ),
         DeclareLaunchArgument(
-            "protocol",
-            default_value="modbus",
-            description="通信协议：modbus 或 canfd",
-            choices=["modbus", "canfd"],
+            "left_protocol_config_file",
+            default_value="",
+            description="左手协议配置文件（YAML），留空则使用包内默认 Modbus 配置",
         ),
         DeclareLaunchArgument(
-            "protocol_config_file",
+            "right_protocol_config_file",
             default_value="",
-            description="协议配置文件（YAML），留空则使用包内默认配置",
+            description="右手协议配置文件（YAML），留空则使用包内默认 Modbus 配置",
         ),
     ]
 
-    hand_type = LaunchConfiguration("hand_type")
-    protocol = LaunchConfiguration("protocol")
-    protocol_config_override = LaunchConfiguration("protocol_config_file")
-
-    protocol_config_default = PathJoinSubstitution([
-        FindPackageShare("brainco_hand_driver"),
-        "config",
-        PythonExpression([
-            "'protocol_canfd_left.yaml' if ('",
-            hand_type,
-            "'.lower() == 'left' and '",
-            protocol,
-            "'.lower() == 'canfd') else ('protocol_modbus_left.yaml' if '",
-            hand_type,
-            "'.lower() == 'left' else ('protocol_canfd.yaml' if '",
-            protocol,
-            "'.lower() == 'canfd' else 'protocol_modbus.yaml'))",
-        ]),
-    ])
-
-    protocol_config_substitution = IfElseSubstitution(
-        PythonExpression(["'", protocol_config_override, "' != ''"]),
-        protocol_config_override,
-        protocol_config_default,
-    )
-
-    # 根据 hand_type 动态生成控制器名称
-    robot_controller = [hand_type, "_revo2_hand_controller"]
-
-    robot_description_content = Command(build_xacro_command(hand_type, protocol_config_substitution))
+    robot_description_content = Command(build_xacro_command())
     robot_description = {"robot_description": ParameterValue(robot_description_content, value_type=str)}
 
     controllers_yaml = PathJoinSubstitution([
         FindPackageShare("brainco_hand_driver"),
-        "config",
-        ["revo2_", hand_type, "_controllers.yaml"],
+        "config/dual_revo2_controllers.yaml",
     ])
 
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controllers_yaml],
+        remappings=[
+            ("~/robot_description", "/robot_description"),
+        ],
         output="screen",
     )
 
@@ -254,19 +168,27 @@ def generate_launch_description():  # noqa: D401
         output="screen",
     )
 
-    revo2_hand_controller_spawner = Node(
+    left_revo2_hand_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[robot_controller, "-c", "/controller_manager"],
+        arguments=["left_revo2_hand_controller", "-c", "/controller_manager"],
         output="screen",
     )
 
+    right_revo2_hand_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["right_revo2_hand_controller", "-c", "/controller_manager"],
+        output="screen",
+    )
+
+    # 使用临时配置来解析 SRDF 以获取虚拟关节
     moveit_config_temp = (
-        MoveItConfigsBuilder("revo2_right", package_name="brainco_hand_driver")
-        .robot_description_semantic(file_path="config/revo2_right.srdf")
-        .trajectory_execution(file_path="config/revo2_right_moveit_controllers.yaml")
-        .joint_limits(file_path="config/revo2_right_joint_limits.yaml")
-        .robot_description_kinematics(file_path="config/revo2_right_kinematics.yaml")
+        MoveItConfigsBuilder("dual_revo2", package_name="brainco_moveit_config")
+        .robot_description_semantic(file_path="config/dual_revo2.srdf")
+        .trajectory_execution(file_path="config/dual_revo2_moveit_controllers.yaml")
+        .joint_limits(file_path="config/dual_revo2_joint_limits.yaml")
+        .robot_description_kinematics(file_path="config/dual_revo2_kinematics.yaml")
         .to_moveit_configs()
     )
 
@@ -309,7 +231,7 @@ def generate_launch_description():  # noqa: D401
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=joint_state_broadcaster_spawner,
-                on_exit=[revo2_hand_controller_spawner],
+                on_exit=[left_revo2_hand_controller_spawner],
             )
         )
     )
@@ -317,12 +239,20 @@ def generate_launch_description():  # noqa: D401
     ld.add_action(
         RegisterEventHandler(
             event_handler=OnProcessExit(
-                target_action=revo2_hand_controller_spawner,
+                target_action=left_revo2_hand_controller_spawner,
+                on_exit=[right_revo2_hand_controller_spawner],
+            )
+        )
+    )
+
+    ld.add_action(
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=right_revo2_hand_controller_spawner,
                 on_exit=[OpaqueFunction(function=generate_moveit_nodes)],
             )
         )
     )
 
     return ld
-
 

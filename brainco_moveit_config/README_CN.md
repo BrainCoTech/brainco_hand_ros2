@@ -82,6 +82,44 @@ ros2 launch brainco_moveit_config revo2_right_moveit.launch.py
 ros2 launch brainco_moveit_config dual_revo2_moveit.launch.py
 ```
 
+## 启动 MoveIt 集成（真机）
+
+### 单手系统（Modbus/CAN FD 模式）
+
+```bash
+# 右手带 MoveIt（Modbus 模式）
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right
+
+# 右手带 MoveIt（CAN FD 模式）
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right protocol:=canfd
+
+# 左手带 MoveIt（Modbus 模式）
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=left
+
+# 左手带 MoveIt（CAN FD 模式）
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=left protocol:=canfd
+```
+
+### 双手系统（MoveIt）
+
+```bash
+# 双手系统 Modbus 模式（默认）
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py
+
+# 双手系统 CAN FD 模式
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py protocol:=canfd
+```
+
+### EtherCAT 模式
+
+```bash
+# 右手带 MoveIt（EtherCAT 模式）
+ros2 launch brainco_moveit_config revo2_ethercat_real_moveit.launch.py hand_type:=right
+
+# 左手带 MoveIt（EtherCAT 模式）
+ros2 launch brainco_moveit_config revo2_ethercat_real_moveit.launch.py hand_type:=left
+```
+
 ### Launch 参数
 
 所有 launch 文件都支持以下参数：
@@ -300,9 +338,12 @@ state interfaces
 ```
 brainco_moveit_config/
 ├── launch/                                      # Launch 文件
-│   ├── revo2_left_moveit.launch.py              # 左手启动文件
-│   ├── revo2_right_moveit.launch.py             # 右手启动文件
-│   └── dual_revo2_moveit.launch.py              # 双手启动文件
+│   ├── revo2_left_moveit.launch.py              # 左手启动文件（FakeSystem）
+│   ├── revo2_right_moveit.launch.py             # 右手启动文件（FakeSystem）
+│   ├── dual_revo2_moveit.launch.py              # 双手启动文件（FakeSystem）
+│   ├── revo2_real_moveit.launch.py              # 单手真机启动文件（Modbus/CAN FD）
+│   ├── dual_revo2_real_moveit.launch.py         # 双手真机启动文件（Modbus/CAN FD）
+│   └── revo2_ethercat_real_moveit.launch.py     # 单手真机启动文件（EtherCAT）
 ├── config/                                      # 配置文件
 │   ├── revo2_left.urdf.xacro                    # 左手 URDF
 │   ├── revo2_left.ros2_control.xacro            # 左手 ros2_control

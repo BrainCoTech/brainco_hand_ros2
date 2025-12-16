@@ -10,23 +10,26 @@
     <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
     
-    <!-- Right hand movement group - includes all fingers -->
+    <!-- Right hand movement group - includes all controllable joints -->
     <group name="revo2_right_hand">
         <link name="right_base_link"/>
-        <!-- Thumb links -->
+        <!-- Explicitly specify only controllable joints to avoid passive joints -->
+        <joint name="right_thumb_metacarpal_joint"/>
+        <joint name="right_thumb_proximal_joint"/>
+        <joint name="right_index_proximal_joint"/>
+        <joint name="right_middle_proximal_joint"/>
+        <joint name="right_ring_proximal_joint"/>
+        <joint name="right_pinky_proximal_joint"/>
+        <!-- Include links for visualization and collision checking -->
         <link name="right_thumb_metacarpal_link"/>
         <link name="right_thumb_proximal_link"/>
         <link name="right_thumb_distal_link"/>
-        <!-- Index finger links -->
         <link name="right_index_proximal_link"/>
         <link name="right_index_distal_link"/>
-        <!-- Middle finger links -->
         <link name="right_middle_proximal_link"/>
         <link name="right_middle_distal_link"/>
-        <!-- Ring finger links -->
         <link name="right_ring_proximal_link"/>
         <link name="right_ring_distal_link"/>
-        <!-- Pinky finger links -->
         <link name="right_pinky_proximal_link"/>
         <link name="right_pinky_distal_link"/>
     </group>
