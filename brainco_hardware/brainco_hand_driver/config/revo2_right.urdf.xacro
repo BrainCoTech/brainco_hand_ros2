@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="revo2_right">
     <xacro:arg name="initial_positions_file" default="revo2_right_initial_positions.yaml" />
-    <xacro:arg name="protocol_config_file" default="$(find brainco_hand_driver)/config/protocol_modbus.yaml" />
+    <xacro:arg name="protocol_config_file" default="$(find brainco_hand_driver)/config/protocol_modbus_right.yaml" />
 
     <!-- World link -->
     <link name="world"/>

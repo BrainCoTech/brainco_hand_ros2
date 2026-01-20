@@ -75,9 +75,9 @@ def generate_moveit_nodes(context, *args, **kwargs):  # noqa: D401
             )
         else:
             filename = (
-                "protocol_canfd.yaml"
+                "protocol_canfd_right.yaml"
                 if protocol_value.lower() == "canfd"
-                else "protocol_modbus.yaml"
+                else "protocol_modbus_right.yaml"
             )
         protocol_config_path = str(
             Path(get_package_share_directory("brainco_hand_driver")) / "config" / filename
@@ -209,9 +209,9 @@ def generate_launch_description():  # noqa: D401
             protocol,
             "'.lower() == 'canfd') else ('protocol_modbus_left.yaml' if '",
             hand_type,
-            "'.lower() == 'left' else ('protocol_canfd.yaml' if '",
+            "'.lower() == 'left' else ('protocol_canfd_right.yaml' if '",
             protocol,
-            "'.lower() == 'canfd' else 'protocol_modbus.yaml'))",
+            "'.lower() == 'canfd' else 'protocol_modbus_right.yaml'))",
         ]),
     ])
 

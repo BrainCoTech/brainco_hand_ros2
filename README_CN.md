@@ -179,8 +179,8 @@ rosdep update
 # 安装所有依赖项
 rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 
-# 构建所有功能包（默认配置，不启用 CAN FD）
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --continue-on-error
+# 构建所有功能包（默认配置，不启用 CAN FD 和 EtherCAT）
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver --continue-on-error
 
 # 激活工作空间
 source install/setup.bash
@@ -188,48 +188,88 @@ source install/setup.bash
 
 #### 编译选项说明
 
-**方式一：全部编译（推荐）**
+**方式一：使用编译脚本（推荐，简洁方便）**
 
-**默认构建（不启用 CAN FD 支持）**
-
-默认情况下，`brainco_hand_driver` 包不包含 CAN FD 支持，以减少依赖和编译时间：
+项目提供了便捷的编译脚本 `build.sh`，可以更方便地控制编译选项：
 
 ```bash
-# 构建所有包（默认，不启用 CAN FD）
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+# 默认编译（不启用 CAN FD 和 EtherCAT）
+./build.sh
 
-# 或者更简洁的命令
+# 启用 CAN FD 支持
+./build.sh --canfd
+
+# 启用 EtherCAT 支持
+./build.sh --ethercat
+
+# 同时启用 CAN FD 和 EtherCAT
+./build.sh --canfd --ethercat
+
+# Release 模式编译
+./build.sh --release
+
+# Release 模式，启用所有功能
+./build.sh --release --canfd --ethercat
+
+# 查看帮助信息
+./build.sh --help
+```
+
+**方式二：使用 colcon 命令（高级用户）**
+
+如果需要更精细的控制，可以直接使用 colcon 命令：
+
+```bash
+# 默认编译（不启用 CAN FD 和 EtherCAT）
+colcon build --symlink-install --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
+
+# 启用 CAN FD 支持
+colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
+
+# 启用 EtherCAT 支持
 colcon build --symlink-install
-```
 
-**启用 CAN FD 支持（全部编译）**
-
-如果需要使用 CAN FD 通信协议，需要在编译时启用 `ENABLE_CANFD` 选项：
-
-```bash
-# 构建所有包并启用 CAN FD 支持
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DENABLE_CANFD=ON
-
-# 或者更简洁的命令
+# 同时启用 CAN FD 和 EtherCAT
 colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON
+
+# Release 模式，启用所有功能
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DENABLE_CANFD=ON
 ```
 
-**方式二：单独编译 brainco_hand_driver 包**
+**方式三：单独编译 brainco_hand_driver 包**
 
 如果只想编译 `brainco_hand_driver` 包：
 
 ```bash
-# 构建单个包（默认，不启用 CAN FD）
-colcon build --packages-select brainco_hand_driver --symlink-install
+# 方式 A：使用 build.sh 脚本（推荐，自动处理依赖）
+./build.sh
 
-# 构建单个包并启用 CAN FD 支持
-colcon build --packages-select brainco_hand_driver --cmake-args -DENABLE_CANFD=ON --symlink-install
+# 方式 B：使用 --packages-up-to（推荐，自动编译依赖包）
+# 单独编译（默认，不启用 CAN FD）
+colcon build --packages-up-to brainco_hand_driver --symlink-install --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
+
+# 单独编译并启用 CAN FD
+colcon build --packages-up-to brainco_hand_driver --cmake-args -DENABLE_CANFD=ON --symlink-install --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
 ```
+
+**重要提示：**
+- `brainco_hand_driver` 依赖于 `revo2_description` 包
+- 如果使用 `--packages-select`，需要先编译依赖包，否则会报错：`Failed to find revo2_description`
+- 推荐使用 `--packages-up-to` 或 `build.sh` 脚本，它们会自动处理依赖关系
+
+**编译选项总结**
+
+| 选项 | 默认值 | 说明 |
+|------|--------|------|
+| `ENABLE_CANFD` | `OFF` | 是否启用 CAN FD 支持（需要 ZLG USB-CAN FD 库） |
+| EtherCAT 包 | 禁用 | 是否编译 EtherCAT 相关包（默认不编译） |
 
 **注意事项**：
 - 启用 CAN FD 支持需要 ZLG USB-CAN FD 驱动库，请确保已正确放置到 `brainco_hardware/brainco_hand_driver/vendor/usbcanfd_libusb_x64_1.0.12_251029/` 目录
 - 如果未启用 CAN FD 支持，使用 CAN FD 协议启动节点时会报错
-- 默认配置（不启用 CAN FD）可以正常使用 Modbus 和 EtherCAT 协议
+- 如果禁用了 EtherCAT 支持，使用 EtherCAT 协议启动节点时会报错（找不到相关包）
+- 默认配置（不启用 CAN FD 和 EtherCAT）可以正常使用 Modbus 协议
+- 如果需要使用 CAN FD 或 EtherCAT 协议，请在编译时通过相应参数启用
 
 ## 使用场景
 

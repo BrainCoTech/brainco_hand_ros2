@@ -2,8 +2,7 @@ hardware:
   protocol: modbus
   # slave_id: 当 auto_detect 为 true 时，此值作为提示，实际会使用检测到的设备的 slave_id
   # 如果 auto_detect 为 false，则使用此值作为目标 slave_id
-  # 注意：左手通常使用 slave_id 126，右手使用 127
-  slave_id: 126
+  slave_id: 127
   log_level: info
   ensure_physical_mode: true
   ctrl_param_duration_ms: 10
@@ -27,5 +26,5 @@ hardware:
   auto_detect_port: ""
   # 如果自动检测有问题，可以禁用自动检测并手动指定端口：
   # auto_detect: false
-  # port: /dev/ttyUSB0  # 根据实际设备端口修改
+  # port: /dev/ttyUSB2  # 根据实际设备端口修改
 

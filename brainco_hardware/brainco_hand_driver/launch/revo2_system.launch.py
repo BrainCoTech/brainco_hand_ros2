@@ -55,9 +55,9 @@ def generate_launch_description():
                 protocol,
                 "'.lower() == 'canfd') else ('protocol_modbus_left.yaml' if '",
                 hand_type,
-                "'.lower() == 'left' else ('protocol_canfd.yaml' if '",
+                "'.lower() == 'left' else ('protocol_canfd_right.yaml' if '",
                 protocol,
-                "'.lower() == 'canfd' else 'protocol_modbus.yaml'))",
+                "'.lower() == 'canfd' else 'protocol_modbus_right.yaml'))",
             ]),
         ]
     )

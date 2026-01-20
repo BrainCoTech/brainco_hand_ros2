@@ -30,7 +30,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "right_protocol_config_file",
             default_value="",
-            description="右手协议配置文件（YAML），留空则使用包内默认配置 protocol_modbus.yaml",
+            description="右手协议配置文件（YAML），留空则使用包内默认配置 protocol_modbus_right.yaml",
         ),
         DeclareLaunchArgument(
             "initial_positions_file",
@@ -56,7 +56,7 @@ def generate_launch_description():
         [
             FindPackageShare("brainco_hand_driver"),
             "config",
-            "protocol_modbus.yaml",
+            "protocol_modbus_right.yaml",
         ]
     )
 

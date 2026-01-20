@@ -7,7 +7,7 @@
 The BrainCo MoveIt Config package provides complete MoveIt configurations for BrainCo Revo2 dexterous hands. It supports three configurations:
 
 - **Single Left Hand**: MoveIt configuration for left Revo2 hand
-- **Single Right Hand**: MoveIt configuration for right Revo2 hand  
+- **Single Right Hand**: MoveIt configuration for right Revo2 hand
 - **Dual Hands**: MoveIt configuration for both left and right Revo2 hands
 
 All configurations use `mock_components/GenericSystem` as the FakeSystem backend, allowing you to test and develop with MoveIt without real hardware.
@@ -41,6 +41,13 @@ sudo apt install ros-humble-controller-manager ros-humble-joint-trajectory-contr
 
 ### 2. Build the Workspace
 
+**Important Notes**:
+- The `brainco_moveit_config` package can be built independently for FakeSystem mode (no hardware required)
+- To use real hardware functionality (Modbus/CAN FD/EtherCAT), you need to build the corresponding hardware driver packages first
+- CAN FD and EtherCAT features are not built by default, need to be enabled during build
+
+**Method 1: Build MoveIt Config Package Only (For FakeSystem Mode)**
+
 ```bash
 # Navigate to workspace
 cd ~/brainco_ws
@@ -48,12 +55,55 @@ cd ~/brainco_ws
 # Install dependencies
 rosdep install --ignore-src --from-paths src -y -r
 
-# Build the package
+# Build MoveIt config package only (for FakeSystem mode)
 colcon build --packages-select brainco_moveit_config --symlink-install
 
 # Source the workspace
 source install/setup.bash
 ```
+
+**Method 2: Build All Packages (Including Real Hardware Drivers, Recommended)**
+
+Use the build script provided by the project:
+
+```bash
+# Navigate to workspace root
+cd ~/brainco_ws
+
+# Default build (CAN FD and EtherCAT disabled, Modbus only)
+./build.sh
+
+# Enable CAN FD support
+./build.sh --canfd
+
+# Enable EtherCAT support
+./build.sh --ethercat
+
+# Enable both CAN FD and EtherCAT
+./build.sh --canfd --ethercat
+```
+
+Or use colcon commands:
+
+```bash
+# Default build (CAN FD and EtherCAT disabled, Modbus only)
+colcon build --symlink-install --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
+
+# Enable CAN FD support
+colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
+
+# Enable EtherCAT support
+colcon build --symlink-install
+
+# Enable both CAN FD and EtherCAT
+colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON
+```
+
+**Build Options:**
+- **Default behavior**: `ENABLE_CANFD=OFF` (CAN FD support disabled), EtherCAT packages not built by default, Modbus mode only
+- **Enable CAN FD**: Use `-DENABLE_CANFD=ON`, requires ZLG USB-CAN FD library files
+- **Enable EtherCAT**: EtherCAT is a separate ROS2 package, not built by default. To enable, build from workspace root without `--packages-ignore`, or use `build.sh --ethercat` script
+- **FakeSystem mode**: No need to build hardware driver packages, can directly use MoveIt for testing and development
 
 ### 3. Verify Installation
 
@@ -80,6 +130,50 @@ ros2 launch brainco_moveit_config revo2_right_moveit.launch.py
 
 ```bash
 ros2 launch brainco_moveit_config dual_revo2_moveit.launch.py
+```
+
+## Launch MoveIt Integration (Real Hardware)
+
+**Important Notes**:
+- Before using real hardware functionality, ensure the corresponding hardware driver packages are built
+- If CAN FD support is not enabled, using CAN FD mode will cause errors
+- If EtherCAT support is disabled, using EtherCAT mode will cause errors (packages not found)
+- Modbus mode is supported by default, no additional build options required
+
+### Single Hand System (Modbus/CAN FD Mode)
+
+```bash
+# Right hand with MoveIt (Modbus mode)
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right
+
+# Right hand with MoveIt (CAN FD mode)
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right protocol:=canfd
+
+# Left hand with MoveIt (Modbus mode)
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=left
+
+# Left hand with MoveIt (CAN FD mode)
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=left protocol:=canfd
+```
+
+### Dual Hand System (MoveIt)
+
+```bash
+# Dual hand system Modbus mode (default)
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py
+
+# Dual hand system CAN FD mode
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py protocol:=canfd
+```
+
+### EtherCAT Mode
+
+```bash
+# Right hand with MoveIt (EtherCAT mode)
+ros2 launch brainco_moveit_config revo2_ethercat_real_moveit.launch.py hand_type:=right
+
+# Left hand with MoveIt (EtherCAT mode)
+ros2 launch brainco_moveit_config revo2_ethercat_real_moveit.launch.py hand_type:=left
 ```
 
 ### Launch Parameters
@@ -300,9 +394,12 @@ state interfaces
 ```
 brainco_moveit_config/
 ├── launch/                                      # Launch files
-│   ├── revo2_left_moveit.launch.py              # Left hand launch
-│   ├── revo2_right_moveit.launch.py             # Right hand launch
-│   └── dual_revo2_moveit.launch.py              # Dual hands launch
+│   ├── revo2_left_moveit.launch.py              # Left hand launch (FakeSystem)
+│   ├── revo2_right_moveit.launch.py             # Right hand launch (FakeSystem)
+│   ├── dual_revo2_moveit.launch.py              # Dual hands launch (FakeSystem)
+│   ├── revo2_real_moveit.launch.py              # Single hand real hardware launch (Modbus/CAN FD)
+│   ├── dual_revo2_real_moveit.launch.py         # Dual hands real hardware launch (Modbus/CAN FD)
+│   └── revo2_ethercat_real_moveit.launch.py     # Single hand real hardware launch (EtherCAT)
 ├── config/                                      # Configuration files
 │   ├── revo2_left.urdf.xacro                    # Left hand URDF
 │   ├── revo2_left.ros2_control.xacro            # Left hand ros2_control
@@ -332,7 +429,8 @@ brainco_moveit_config/
 │   └── pilz_cartesian_limits.yaml               # Pilz planner limits
 ├── CMakeLists.txt                               # Build configuration
 ├── package.xml                                  # Package description
-└── README.md                                    # This file
+├── README.md                                    # English documentation
+└── README_CN.md                                 # Chinese documentation
 ```
 
 ## Related Packages

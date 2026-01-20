@@ -80,7 +80,10 @@ auto BraincoHandHardware::on_configure(const rclcpp_lifecycle::State & previous_
 
   if (!open_connection())
   {
-    BRAINCO_HAND_LOG_ERROR("Failed to open transport session");
+    BRAINCO_HAND_LOG_ERROR(
+      "Failed to open transport session during configuration. "
+      "The hardware will not be activated. Please check the connection and try again.");
+    // Return ERROR to prevent activation, but don't crash
     return hardware_interface::CallbackReturn::ERROR;
   }
 
@@ -541,11 +544,30 @@ auto BraincoHandHardware::open_connection() -> bool
   close_connection();
 
   api_.configure(config_.transport);
+  
+  const char * protocol_label =
+    config_.transport.protocol == Protocol::kCanfd ? "CANFD" : "Modbus";
+  
+  if (config_.transport.protocol == Protocol::kModbus)
+  {
+    if (config_.transport.modbus.auto_detect)
+    {
+      BRAINCO_HAND_LOG_INFO(
+        "Attempting to auto-detect %s device (requested slave_id: %u)...", protocol_label,
+        config_.transport.slave_id);
+    }
+    else
+    {
+      BRAINCO_HAND_LOG_INFO(
+        "Attempting to connect to %s device on port %s (slave_id: %u)...", protocol_label,
+        config_.transport.modbus.port.c_str(), config_.transport.slave_id);
+    }
+  }
+  
   if (!api_.open())
   {
-    const char * protocol_label =
-      config_.transport.protocol == Protocol::kCanfd ? "CANFD" : "Modbus";
-    BRAINCO_HAND_LOG_ERROR("Failed to open %s transport session", protocol_label);
+    BRAINCO_HAND_LOG_ERROR(
+      "Failed to open %s transport session. Connection cannot be established.", protocol_label);
     return false;
   }
 

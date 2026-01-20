@@ -314,8 +314,8 @@ class ROS2EnvironmentChecker:
         return results
     
     @staticmethod
-    def check_controllers() -> Dict[str, any]:
-        """检查控制器状态"""
+    def check_controllers(max_retries: int = 3, retry_delay: float = 1.0) -> Dict[str, any]:
+        """检查控制器状态（带重试机制）"""
         results = {}
 
         try:
@@ -339,25 +339,69 @@ class ROS2EnvironmentChecker:
                     results['detected_hand_type'] = None
                     print("⚠ 未检测到 Revo2 手控制器")
 
-            # 检查硬件接口
+            # 检查硬件接口（带重试机制）
+            hardware_component_detected = False
+            for attempt in range(max_retries):
             result = subprocess.run(['ros2', 'control', 'list_hardware_interfaces'],
                                   capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 results['hardware_interfaces'] = result.stdout.strip()
+                    
+                    # 只在第一次或最后一次尝试时打印完整信息
+                    if attempt == 0 or attempt == max_retries - 1:
                 print("✓ 硬件接口:")
                 print(results['hardware_interfaces'])
 
                 # 检查硬件组件类型
                 interfaces_output = results['hardware_interfaces']
+                    
+                    # 检查组件名称
                 if 'Revo2RightEthercatSystem' in interfaces_output:
                     results['hardware_component_type'] = 'right'
                     print("✓ 检测到右手硬件组件")
+                        hardware_component_detected = True
+                        break
                 elif 'Revo2LeftEthercatSystem' in interfaces_output:
                     results['hardware_component_type'] = 'left'
                     print("✓ 检测到左手硬件组件")
+                        hardware_component_detected = True
+                        break
                 else:
+                        # 如果没找到组件名称，检查是否有可用的接口（作为备用检测）
+                        # 检查是否有 command interfaces 或 state interfaces
+                        if 'command interfaces' in interfaces_output.lower() or 'state interfaces' in interfaces_output.lower():
+                            # 检查是否有 Revo2 相关的关节接口
+                            if any(joint in interfaces_output for joint in [
+                                'right_thumb_proximal_joint', 'left_thumb_proximal_joint',
+                                'right_index_proximal_joint', 'left_index_proximal_joint'
+                            ]):
+                                # 根据关节名称推断手类型
+                                if 'right_' in interfaces_output and 'right_thumb_proximal_joint' in interfaces_output:
+                                    results['hardware_component_type'] = 'right'
+                                    print("✓ 通过接口检测到右手硬件组件")
+                                    hardware_component_detected = True
+                                    break
+                                elif 'left_' in interfaces_output and 'left_thumb_proximal_joint' in interfaces_output:
+                                    results['hardware_component_type'] = 'left'
+                                    print("✓ 通过接口检测到左手硬件组件")
+                                    hardware_component_detected = True
+                                    break
+                
+                # 如果还没检测到，等待后重试
+                if not hardware_component_detected and attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+            
+            # 如果所有重试都失败
+            if not hardware_component_detected:
                     results['hardware_component_type'] = None
-                    print("⚠ 未检测到 Revo2 硬件组件")
+                # 检查是否有接口可用（即使没有组件名称）
+                if 'hardware_interfaces' in results:
+                    interfaces_output = results['hardware_interfaces']
+                    # 如果接口列表不为空，说明硬件可能在工作，只是组件名称未显示
+                    if interfaces_output and len(interfaces_output.strip()) > 0:
+                        print("ℹ 硬件接口可用，但未检测到组件名称（可能正常，硬件功能正常）")
+                    else:
+                        print("⚠ 未检测到 Revo2 硬件组件和接口")
 
         except Exception as e:
             print(f"✗ 检查控制器失败: {e}")
@@ -433,12 +477,12 @@ class TestMenu:
         # 检查节点和话题
         node_topic_results = ROS2EnvironmentChecker.check_nodes_and_topics()
 
-        # 检查控制器
-        controller_results = ROS2EnvironmentChecker.check_controllers()
-
-        # 等待一段时间让节点启动
+        # 等待一段时间让节点启动（在检查控制器之前）
         print("等待节点启动...")
-        time.sleep(1)
+        time.sleep(2)  # 增加等待时间到2秒
+
+        # 检查控制器（带重试机制）
+        controller_results = ROS2EnvironmentChecker.check_controllers(max_retries=3, retry_delay=1.0)
 
         # 检测手类型
         detected_hand_type = controller_results.get('detected_hand_type')
@@ -545,6 +589,23 @@ class TestMenu:
         
         return success
     
+    def run_show_states_test(self):
+        """运行显示当前关节状态测试"""
+        print("\n=== 显示当前关节状态 ===")
+        
+        if not self.tester:
+            print("❌ 测试器未初始化")
+            return False
+        
+        # 等待一小段时间确保有状态数据
+        time.sleep(0.5)
+        
+        # 显示当前状态
+        self.tester.print_current_states()
+        print("✓ 关节状态显示完成")
+        
+        return True
+    
     def show_menu(self):
         """显示主菜单"""
         print("\n" + "="*50)
@@ -565,6 +626,7 @@ class TestMenu:
         
         tests = [
             ("环境测试", self.run_environment_test),
+            ("显示当前关节状态", self.run_show_states_test),
             ("归零测试", self.run_home_test),
             ("单关节测试", self.run_individual_joint_test),
             ("全指同时控制测试", self.run_all_fingers_test),
