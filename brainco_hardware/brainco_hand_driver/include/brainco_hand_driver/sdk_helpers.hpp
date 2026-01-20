@@ -51,4 +51,3 @@ using MotorStatusPtr = std::unique_ptr<MotorStatusData, MotorStatusDeleter>;
 auto to_sdk_log_level(BraincoLogLevel level) -> LogLevel;
 
 }  // namespace brainco_hand_driver
-

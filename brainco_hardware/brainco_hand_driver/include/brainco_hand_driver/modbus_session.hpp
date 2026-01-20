@@ -42,4 +42,3 @@ private:
 };
 
 }  // namespace brainco_hand_driver
-
