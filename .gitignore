@@ -18,3 +18,6 @@ AMENT_IGNORE
 .cache/*
 .clangd
 compile_commands.json
+brainco_hardware/brainco_hand_driver/scripts/logs/*
+logs/*
+.history/*

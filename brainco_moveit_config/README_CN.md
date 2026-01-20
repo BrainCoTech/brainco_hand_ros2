@@ -41,6 +41,13 @@ sudo apt install ros-humble-controller-manager ros-humble-joint-trajectory-contr
 
 ### 2. 构建工作空间
 
+**重要提示**：
+- `brainco_moveit_config` 包本身可以独立编译，用于 FakeSystem 模式（无需硬件）
+- 如果要使用真机功能（Modbus/CAN FD/EtherCAT），需要先编译相应的硬件驱动包
+- CAN FD 和 EtherCAT 功能默认不编译，需要编译时启用
+
+**方式一：只编译 MoveIt 配置包（用于 FakeSystem 模式）**
+
 ```bash
 # 进入工作空间
 cd ~/brainco_ws
@@ -48,12 +55,55 @@ cd ~/brainco_ws
 # 安装依赖项
 rosdep install --ignore-src --from-paths src -y -r
 
-# 构建功能包
+# 只编译 MoveIt 配置包（用于 FakeSystem 模式）
 colcon build --packages-select brainco_moveit_config --symlink-install
 
 # Source 工作空间
 source install/setup.bash
 ```
+
+**方式二：编译所有包（包括真机驱动，推荐）**
+
+使用项目提供的编译脚本：
+
+```bash
+# 进入工作空间根目录
+cd ~/brainco_ws
+
+# 默认编译（不启用 CAN FD 和 EtherCAT，仅支持 Modbus）
+./build.sh
+
+# 启用 CAN FD 支持
+./build.sh --canfd
+
+# 启用 EtherCAT 支持
+./build.sh --ethercat
+
+# 同时启用 CAN FD 和 EtherCAT
+./build.sh --canfd --ethercat
+```
+
+或使用 colcon 命令：
+
+```bash
+# 默认编译（不启用 CAN FD 和 EtherCAT，仅支持 Modbus）
+colcon build --symlink-install --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
+
+# 启用 CAN FD 支持
+colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
+
+# 启用 EtherCAT 支持
+colcon build --symlink-install
+
+# 同时启用 CAN FD 和 EtherCAT
+colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON
+```
+
+**编译选项说明**：
+- **默认行为**：`ENABLE_CANFD=OFF`（禁用 CAN FD 支持），EtherCAT 相关包默认不编译，仅支持 Modbus 模式
+- **启用 CAN FD**：使用 `-DENABLE_CANFD=ON`，需要 ZLG USB-CAN FD 库文件
+- **启用 EtherCAT**：EtherCAT 是独立的 ROS2 包，默认不编译。如需启用，请在工作空间根目录直接编译（不添加 `--packages-ignore`），或使用项目根目录的 `build.sh --ethercat` 脚本
+- **FakeSystem 模式**：不需要编译硬件驱动包，可以直接使用 MoveIt 进行测试和开发
 
 ### 3. 验证安装
 
@@ -80,6 +130,50 @@ ros2 launch brainco_moveit_config revo2_right_moveit.launch.py
 
 ```bash
 ros2 launch brainco_moveit_config dual_revo2_moveit.launch.py
+```
+
+## 启动 MoveIt 集成（真机）
+
+**重要提示**：
+- 使用真机功能前，请确保已编译相应的硬件驱动包
+- 如果未启用 CAN FD 支持，使用 CAN FD 模式会报错
+- 如果禁用了 EtherCAT 支持，使用 EtherCAT 模式会报错（找不到相关包）
+- Modbus 模式是默认支持的，无需额外编译选项
+
+### 单手系统（Modbus/CAN FD 模式）
+
+```bash
+# 右手带 MoveIt（Modbus 模式）
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right
+
+# 右手带 MoveIt（CAN FD 模式）
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right protocol:=canfd
+
+# 左手带 MoveIt（Modbus 模式）
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=left
+
+# 左手带 MoveIt（CAN FD 模式）
+ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=left protocol:=canfd
+```
+
+### 双手系统（MoveIt）
+
+```bash
+# 双手系统 Modbus 模式（默认）
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py
+
+# 双手系统 CAN FD 模式
+ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py protocol:=canfd
+```
+
+### EtherCAT 模式
+
+```bash
+# 右手带 MoveIt（EtherCAT 模式）
+ros2 launch brainco_moveit_config revo2_ethercat_real_moveit.launch.py hand_type:=right
+
+# 左手带 MoveIt（EtherCAT 模式）
+ros2 launch brainco_moveit_config revo2_ethercat_real_moveit.launch.py hand_type:=left
 ```
 
 ### Launch 参数
@@ -300,9 +394,12 @@ state interfaces
 ```
 brainco_moveit_config/
 ├── launch/                                      # Launch 文件
-│   ├── revo2_left_moveit.launch.py              # 左手启动文件
-│   ├── revo2_right_moveit.launch.py             # 右手启动文件
-│   └── dual_revo2_moveit.launch.py              # 双手启动文件
+│   ├── revo2_left_moveit.launch.py              # 左手启动文件（FakeSystem）
+│   ├── revo2_right_moveit.launch.py             # 右手启动文件（FakeSystem）
+│   ├── dual_revo2_moveit.launch.py              # 双手启动文件（FakeSystem）
+│   ├── revo2_real_moveit.launch.py              # 单手真机启动文件（Modbus/CAN FD）
+│   ├── dual_revo2_real_moveit.launch.py         # 双手真机启动文件（Modbus/CAN FD）
+│   └── revo2_ethercat_real_moveit.launch.py     # 单手真机启动文件（EtherCAT）
 ├── config/                                      # 配置文件
 │   ├── revo2_left.urdf.xacro                    # 左手 URDF
 │   ├── revo2_left.ros2_control.xacro            # 左手 ros2_control

@@ -1,5 +1,5 @@
 # This config file is used by ros2_control
-controller_manager:
+/right_hand/controller_manager:
   ros__parameters:
     update_rate: 100  # Hz
 
@@ -8,26 +8,18 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
 
     right_revo2_hand_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      # 位置控制器（Position controller）：直接向各关节 position 接口下发目标值
+      type: position_controllers/JointGroupPositionController
 
 # Revo2 Right Hand Configuration 
-right_revo2_hand_controller:
+/right_hand/right_revo2_hand_controller:
   ros__parameters:
     joints:
-      - right_thumb_metacarpal_joint
       - right_thumb_proximal_joint
+      - right_thumb_metacarpal_joint
       - right_index_proximal_joint
       - right_middle_proximal_joint
       - right_ring_proximal_joint
       - right_pinky_proximal_joint
-
-    command_interfaces:
-      - position
-
-    state_interfaces:
-      - position
-      - velocity
-
-    action_monitor_rate: 20.0
-    allow_partial_joints_goal: false
+    interface_name: position
 

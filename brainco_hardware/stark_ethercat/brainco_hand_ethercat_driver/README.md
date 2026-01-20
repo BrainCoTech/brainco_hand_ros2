@@ -11,9 +11,8 @@ The BrainCo Hand EtherCAT Driver package provides a ROS2 hardware interface for 
 - **EtherCAT Communication**: Real-time EtherCAT communication with Revo2 hand hardware
 - **ros2_control Integration**: Full ros2_control hardware interface implementation
 - **Dual Hand Support**: Support for both left and right hand configurations
-- **MoveIt Integration**: Optional MoveIt integration for motion planning
 - **Real-time Control**: High-frequency control loop for precise finger manipulation
-- **State Feedback**: Position, velocity, and effort feedback from all joints
+- **State Feedback**: Position and velocity feedback from all joints
 - **Trajectory Control**: Joint trajectory controller support for smooth motion execution
 
 ## Environment
@@ -38,24 +37,71 @@ sudo apt install ros-humble-joint-state-broadcaster ros-humble-robot-state-publi
 pip3 install rclpy trajectory_msgs sensor_msgs control_msgs
 
 # EtherCAT Master (if not already installed)
-# Follow EtherCAT Master installation guide for your system
+# Follow EtherCAT Master installation guide:
+# https://gitlab.com/etherlab.org/ethercat/-/blob/stable-1.6/INSTALL.md
 ```
 
 ### 2. Build the Workspace
 
+**Important Note**: EtherCAT related packages are not built by default. To use EtherCAT functionality, you need to enable it during build.
+
+**Method 1: Using Build Script (Recommended)**
+
+Use the build script provided in the workspace root directory:
+
 ```bash
-# Navigate to workspace
+# Navigate to workspace root
+cd ~/brainco_ws
+
+# Enable EtherCAT support and build all packages
+./build.sh --ethercat
+
+# Or enable both CAN FD and EtherCAT
+./build.sh --canfd --ethercat
+```
+
+**Method 2: Using colcon Commands**
+
+```bash
+# Navigate to workspace root
 cd ~/brainco_ws
 
 # Install dependencies
 rosdep install --ignore-src --from-paths src -y -r
 
-# Build the package
+# Method A: Build all packages (including EtherCAT)
+# Note: Don't add --packages-ignore to build EtherCAT related packages
+colcon build --symlink-install
+
+# Method B: Build only EtherCAT related packages
 colcon build --packages-select brainco_hand_ethercat_driver stark_ethercat_interface stark_ethercat_driver --symlink-install
 
 # Source the workspace
 source install/setup.bash
 ```
+
+**Method 3: Building from stark_ethercat Directory (Recommended for Quick Testing)**
+
+If you enter the `stark_ethercat` directory to build, only EtherCAT related packages in that directory will be built:
+
+```bash
+# Navigate to stark_ethercat directory
+cd ~/brainco_ws/src/brainco_hand_ros2/brainco_hardware/stark_ethercat
+
+# Build all EtherCAT related packages in this directory
+# Note: When building from directory, only packages in current directory are built, no --packages-ignore needed
+colcon build --symlink-install
+
+# Source the workspace (need to return to workspace root)
+cd ~/brainco_ws
+source install/setup.bash
+```
+
+**Build Options:**
+- By default, EtherCAT related packages are not built (disabled by default)
+- To use EtherCAT functionality, use `./build.sh --ethercat` or build without `--packages-ignore` option
+- If EtherCAT is disabled, running EtherCAT related launch files will fail (packages not found)
+- When building from `stark_ethercat` directory, only packages in that directory are built, no need to consider `--packages-ignore` option
 
 ### 3. Verify Installation
 
@@ -102,9 +148,12 @@ ros2 launch brainco_hand_ethercat_driver revo2_system.launch.py hand_type:=right
 ros2 launch brainco_hand_ethercat_driver revo2_system.launch.py hand_type:=left
 ```
 
-### Launch Parameters
+```bash
+# Filter domain information output
+ros2 launch brainco_hand_ethercat_driver revo2_system.launch.py 2>&1 | grep -v "\[ros2_control_node-1\] Domain"
+```
 
-All launch files support the following parameters:
+### Launch Parameters
 
 #### Basic System Parameters (revo2_system.launch.py)
 
@@ -114,15 +163,6 @@ All launch files support the following parameters:
 | `prefix` | `""` | Prefix for joint names, useful for multi-robot setup |
 | `ctrl_param_duration_ms` | `20` | Motion time parameter in milliseconds (1ms = fastest speed) |
 | `robot_controller` | Auto-generated | Controller name (auto-generated based on hand_type) |
-
-#### MoveIt Integration Parameters (revo2_real_moveit.launch.py)
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `hand_type` | `right` | Hand type: `left` or `right` |
-| `ctrl_param_duration_ms` | `10` | Motion time parameter in milliseconds (1ms = fastest speed) |
-| `use_rviz` | `true` | Whether to launch RViz visualization |
-| `publish_monitored_planning_scene` | `true` | Whether to publish monitored planning scene |
 
 ## Control Interface
 
@@ -298,7 +338,7 @@ ros2 topic pub --once /left_revo2_hand_controller/joint_trajectory \
 
 ## Test Scripts
 
-The package includes a test script for interactive testing:
+The package includes an interactive test script:
 
 ```bash
 # Navigate to scripts directory
@@ -445,32 +485,10 @@ state interfaces
 ```
 brainco_hand_ethercat_driver/
 ├── launch/                                      # Launch files
-│   ├── revo2_system.launch.py                    # Main system launch
-│   └── revo2_real_moveit.launch.py               # MoveIt integration launch
+│   └── revo2_system.launch.py                    # Main system launch
 ├── config/                                      # Configuration files
-│   ├── revo2_left.urdf.xacro                    # Left hand URDF
-│   ├── revo2_left.ros2_control.xacro            # Left hand ros2_control
-│   ├── revo2_left.srdf                          # Left hand SRDF
-│   ├── revo2_left_controllers.yaml              # Left hand controllers
-│   ├── revo2_left_initial_positions.yaml        # Left hand initial positions
-│   ├── revo2_left_joint_limits.yaml             # Left hand joint limits
-│   ├── revo2_left_kinematics.yaml               # Left hand kinematics
-│   ├── revo2_left_moveit_controllers.yaml       # Left hand MoveIt controllers
-│   ├── revo2_right.urdf.xacro                   # Right hand URDF
-│   ├── revo2_right.ros2_control.xacro           # Right hand ros2_control
-│   ├── revo2_right.srdf                         # Right hand SRDF
-│   ├── revo2_right_controllers.yaml             # Right hand controllers
-│   ├── revo2_right_initial_positions.yaml       # Right hand initial positions
-│   ├── revo2_right_joint_limits.yaml            # Right hand joint limits
-│   ├── revo2_right_kinematics.yaml              # Right hand kinematics
-│   ├── revo2_right_moveit_controllers.yaml     # Right hand MoveIt controllers
-│   ├── moveit.rviz                              # RViz configuration
-│   └── pilz_cartesian_limits.yaml                # Pilz planner limits
 ├── include/                                     # Header files
 │   └── revo2_ethercat_plugins/                  # Plugin headers
-│       ├── execute_command.hpp
-│       ├── logger_macros.hpp
-│       └── revo2_joints_system_slave.hpp
 ├── src/                                         # Source files
 │   └── revo2_joints_system_slave.cpp            # Hardware interface implementation
 ├── scripts/                                     # Utility scripts

@@ -47,7 +47,7 @@ def generate_moveit_nodes(context, *args, **kwargs):  # noqa: D401
     kinematics_file = "config/dual_revo2_kinematics.yaml"
 
     moveit_config = (
-        MoveItConfigsBuilder(robot_name, package_name="brainco_hand_driver")
+        MoveItConfigsBuilder(robot_name, package_name="brainco_moveit_config")
         .robot_description_semantic(file_path=srdf_file)
         .trajectory_execution(file_path=trajectory_file)
         .joint_limits(file_path=joint_limits_file)
@@ -58,7 +58,7 @@ def generate_moveit_nodes(context, *args, **kwargs):  # noqa: D401
     robot_description_content = Command(build_xacro_command())
     robot_description = {"robot_description": ParameterValue(robot_description_content, value_type=str)}
 
-    pkg_path = get_package_share_directory("brainco_hand_driver")
+    pkg_path = get_package_share_directory("brainco_moveit_config")
     default_rviz_config = str(Path(pkg_path) / "config" / "moveit.rviz")
 
     move_group_configuration = {
@@ -148,6 +148,9 @@ def generate_launch_description():  # noqa: D401
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, controllers_yaml],
+        remappings=[
+            ("~/robot_description", "/robot_description"),
+        ],
         output="screen",
     )
 
@@ -181,7 +184,7 @@ def generate_launch_description():  # noqa: D401
 
     # 使用临时配置来解析 SRDF 以获取虚拟关节
     moveit_config_temp = (
-        MoveItConfigsBuilder("dual_revo2", package_name="brainco_hand_driver")
+        MoveItConfigsBuilder("dual_revo2", package_name="brainco_moveit_config")
         .robot_description_semantic(file_path="config/dual_revo2.srdf")
         .trajectory_execution(file_path="config/dual_revo2_moveit_controllers.yaml")
         .joint_limits(file_path="config/dual_revo2_joint_limits.yaml")

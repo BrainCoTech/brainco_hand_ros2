@@ -11,7 +11,6 @@ BrainCo Hand EtherCAT 驱动包为 BrainCo Revo2 灵巧手提供基于 EtherCAT 
 - **EtherCAT 通信**：与 Revo2 灵巧手硬件的实时 EtherCAT 通信
 - **ros2_control 集成**：完整的 ros2_control 硬件接口实现
 - **双手支持**：支持左手和右手配置
-- **MoveIt 集成**：可选的 MoveIt 集成用于运动规划
 - **实时控制**：高频控制循环，实现精确的手指操控
 - **状态反馈**：所有关节的位置、速度反馈
 - **轨迹控制**：关节轨迹控制器支持，实现平滑运动执行
@@ -38,24 +37,71 @@ sudo apt install ros-humble-joint-state-broadcaster ros-humble-robot-state-publi
 pip3 install rclpy trajectory_msgs sensor_msgs control_msgs
 
 # EtherCAT 主站（如果尚未安装）
-# 请按照系统的 EtherCAT 主站安装指南进行安装
+# 请按照 EtherCAT 主站安装指南进行安装：
+# https://gitlab.com/etherlab.org/ethercat/-/blob/stable-1.6/INSTALL.md
 ```
 
 ### 2. 构建工作空间
 
+**重要提示**：EtherCAT 相关包默认不会被编译。如需使用 EtherCAT 功能，需要在编译时启用。
+
+**方式一：使用编译脚本（推荐）**
+
+在工作空间根目录使用项目提供的编译脚本：
+
 ```bash
-# 进入工作空间
+# 进入工作空间根目录
+cd ~/brainco_ws
+
+# 启用 EtherCAT 支持并编译所有包
+./build.sh --ethercat
+
+# 或者同时启用 CAN FD 和 EtherCAT
+./build.sh --canfd --ethercat
+```
+
+**方式二：使用 colcon 命令**
+
+```bash
+# 进入工作空间根目录
 cd ~/brainco_ws
 
 # 安装依赖项
 rosdep install --ignore-src --from-paths src -y -r
 
-# 构建功能包
+# 方式 A：编译所有包（包括 EtherCAT）
+# 注意：不添加 --packages-ignore 才会编译 EtherCAT 相关包
+colcon build --symlink-install
+
+# 方式 B：只编译 EtherCAT 相关包
 colcon build --packages-select brainco_hand_ethercat_driver stark_ethercat_interface stark_ethercat_driver --symlink-install
 
 # Source 工作空间
 source install/setup.bash
 ```
+
+**方式三：在 stark_ethercat 目录下直接编译（推荐用于快速测试）**
+
+如果进入 `stark_ethercat` 目录编译，只会编译该目录下的 EtherCAT 相关包：
+
+```bash
+# 进入 stark_ethercat 目录
+cd ~/brainco_ws/src/brainco_hand_ros2/brainco_hardware/stark_ethercat
+
+# 编译该目录下的所有 EtherCAT 相关包
+# 注意：在目录下编译时，只编译当前目录的包，不需要 --packages-ignore
+colcon build --symlink-install
+
+# Source 工作空间（需要回到工作空间根目录）
+cd ~/brainco_ws
+source install/setup.bash
+```
+
+**编译选项说明**：
+- 默认情况下，EtherCAT 相关包不会被编译（默认禁用）
+- 如需使用 EtherCAT 功能，请使用 `./build.sh --ethercat` 或在编译时不添加 `--packages-ignore` 选项
+- 如果禁用了 EtherCAT，运行 EtherCAT 相关的 launch 文件会报错（找不到相关包）
+- 在 `stark_ethercat` 目录下编译时，只编译该目录下的包，不需要考虑 `--packages-ignore` 选项
 
 ### 3. 验证安装
 
@@ -107,16 +153,6 @@ ros2 launch brainco_hand_ethercat_driver revo2_system.launch.py hand_type:=left
 ros2 launch brainco_hand_ethercat_driver revo2_system.launch.py 2>&1 | grep -v "\[ros2_control_node-1\] Domain"
 ```
 
-### 启动 MoveIt 集成
-
-```bash
-# 右手带 MoveIt
-ros2 launch brainco_hand_ethercat_driver revo2_real_moveit.launch.py hand_type:=right
-
-# 左手带 MoveIt
-ros2 launch brainco_hand_ethercat_driver revo2_real_moveit.launch.py hand_type:=left
-```
-
 ### Launch 参数
 
 #### 基础系统参数（revo2_system.launch.py）
@@ -127,15 +163,6 @@ ros2 launch brainco_hand_ethercat_driver revo2_real_moveit.launch.py hand_type:=
 | `prefix` | `""` | 关节名称前缀，用于多机器人设置 |
 | `ctrl_param_duration_ms` | `20` | 运动时间参数，单位毫秒（1ms = 最快速度） |
 | `robot_controller` | 自动生成 | 控制器名称（根据 hand_type 自动生成） |
-
-#### MoveIt 集成参数（revo2_real_moveit.launch.py）
-
-| 参数 | 默认值 | 描述 |
-|------|--------|------|
-| `hand_type` | `right` | 手型选择：`left` 或 `right` |
-| `ctrl_param_duration_ms` | `10` | 运动时间参数，单位毫秒（1ms = 最快速度） |
-| `use_rviz` | `true` | 是否启动 RViz 可视化 |
-| `publish_monitored_planning_scene` | `true` | 是否发布监控的规划场景 |
 
 ## 控制接口
 
@@ -459,8 +486,7 @@ state interfaces
 ```
 brainco_hand_ethercat_driver/
 ├── launch/                                      # Launch 文件
-│   ├── revo2_system.launch.py                    # 主系统启动文件
-│   └── revo2_real_moveit.launch.py               # MoveIt 集成启动文件
+│   └── revo2_system.launch.py                    # 主系统启动文件
 ├── config/                                      # 配置文件
 ├── include/                                     # 头文件
 │   └── revo2_ethercat_plugins/                  # 插件头文件

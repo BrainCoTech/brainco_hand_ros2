@@ -16,9 +16,14 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 find_library(ETHERCAT_LIB ethercat HINTS ${ETHERLAB_DIR}/lib)
 
+# 只在 EtherLab include 目录存在时才导出
+set(ETHERLAB_INCLUDE_DIRS include)
+if(EXISTS ${ETHERLAB_DIR}/include)
+  list(APPEND ETHERLAB_INCLUDE_DIRS ${ETHERLAB_DIR}/include)
+endif()
+
 ament_export_include_directories(
-  include
-  ${ETHERLAB_DIR}/include
+  ${ETHERLAB_INCLUDE_DIRS}
 )
 
 add_library(

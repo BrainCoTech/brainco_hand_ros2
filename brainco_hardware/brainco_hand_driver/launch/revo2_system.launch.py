@@ -41,6 +41,8 @@ def generate_launch_description():
 
     # 根据 hand_type 动态生成控制器名称
     robot_controller = [hand_type, "_revo2_hand_controller"]
+    # 每只手使用独立 namespace：left_hand / right_hand
+    hand_namespace = PythonExpression(["'", hand_type, "'.lower() + '_hand'"])
 
     protocol_config_default = PathJoinSubstitution(
         [
@@ -53,9 +55,9 @@ def generate_launch_description():
                 protocol,
                 "'.lower() == 'canfd') else ('protocol_modbus_left.yaml' if '",
                 hand_type,
-                "'.lower() == 'left' else ('protocol_canfd.yaml' if '",
+                "'.lower() == 'left' else ('protocol_canfd_right.yaml' if '",
                 protocol,
-                "'.lower() == 'canfd' else 'protocol_modbus.yaml'))",
+                "'.lower() == 'canfd' else 'protocol_modbus_right.yaml'))",
             ]),
         ]
     )
@@ -95,10 +97,8 @@ def generate_launch_description():
     control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
+        namespace=hand_namespace,
         parameters=[robot_description, robot_controllers],
-        remappings=[
-            ("~/robot_description", "/robot_description"),
-        ],
         output="both",
     )
 
@@ -106,20 +106,35 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
+        namespace=hand_namespace,
         parameters=[robot_description],
     )
+
+    controller_manager_full_name = PathJoinSubstitution(["/", hand_namespace, "controller_manager"])
 
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
+        namespace=hand_namespace,
+        arguments=[
+            "joint_state_broadcaster",
+            "-c",
+            controller_manager_full_name,
+        ],
         output="both",
     )
 
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[robot_controller, "-c", "/controller_manager"],
+        namespace=hand_namespace,
+        arguments=[
+            robot_controller,
+            "-c",
+            controller_manager_full_name,
+            "-p",
+            robot_controllers,
+        ],
         output="both",
     )
 

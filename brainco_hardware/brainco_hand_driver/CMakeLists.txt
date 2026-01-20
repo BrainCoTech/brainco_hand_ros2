@@ -7,6 +7,11 @@ cmake_minimum_required(VERSION 3.16)
 project(brainco_hand_driver)
 
 # -----------------------------------------------------------------------------
+# 编译选项
+# -----------------------------------------------------------------------------
+option(ENABLE_CANFD "Enable CAN FD support (requires ZLG USB-CAN FD libraries)" OFF)
+
+# -----------------------------------------------------------------------------
 # 编译器警告设置
 # -----------------------------------------------------------------------------
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -44,28 +49,35 @@ set_target_properties(brainco_stark_sdk PROPERTIES
 )
 
 # -----------------------------------------------------------------------------
-# ZLG USB-CAN FD 驱动库
+# ZLG USB-CAN FD 驱动库（可选）
 # 该库随仓库 vendor 目录一同发布，详细请见 https://manual.zlg.cn/web/#/146 
+# 仅在 ENABLE_CANFD=ON 时启用
 # -----------------------------------------------------------------------------
-set(ZLG_CANFD_VENDOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor/usbcanfd_libusb_x64_1.0.12_251029")
-set(ZLG_CANFD_LIB_PATH "${ZLG_CANFD_VENDOR_DIR}/libusbcanfd.so.1.0.12")
-set(ZLG_ZUDS_LIB_PATH   "${ZLG_CANFD_VENDOR_DIR}/libzuds.so")
+if(ENABLE_CANFD)
+  set(ZLG_CANFD_VENDOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vendor/usbcanfd_libusb_x64_1.0.12_251029")
+  set(ZLG_CANFD_LIB_PATH "${ZLG_CANFD_VENDOR_DIR}/libusbcanfd.so.1.0.12")
+  set(ZLG_ZUDS_LIB_PATH   "${ZLG_CANFD_VENDOR_DIR}/libzuds.so")
 
-foreach(_zlg_lib IN ITEMS ${ZLG_CANFD_LIB_PATH} ${ZLG_ZUDS_LIB_PATH})
-  if(NOT EXISTS ${_zlg_lib})
-    message(FATAL_ERROR "ZLG USB-CAN FD library not found: ${_zlg_lib}. Please place vendor package under ${ZLG_CANFD_VENDOR_DIR}.")
-  endif()
-endforeach()
+  foreach(_zlg_lib IN ITEMS ${ZLG_CANFD_LIB_PATH} ${ZLG_ZUDS_LIB_PATH})
+    if(NOT EXISTS ${_zlg_lib})
+      message(FATAL_ERROR "ZLG USB-CAN FD library not found: ${_zlg_lib}. Please place vendor package under ${ZLG_CANFD_VENDOR_DIR} or set ENABLE_CANFD=OFF to disable CAN FD support.")
+    endif()
+  endforeach()
 
-add_library(zlg_usbcanfd SHARED IMPORTED GLOBAL)
-set_target_properties(zlg_usbcanfd PROPERTIES
-  IMPORTED_LOCATION ${ZLG_CANFD_LIB_PATH}
-)
+  add_library(zlg_usbcanfd SHARED IMPORTED GLOBAL)
+  set_target_properties(zlg_usbcanfd PROPERTIES
+    IMPORTED_LOCATION ${ZLG_CANFD_LIB_PATH}
+  )
 
-add_library(zlg_zuds SHARED IMPORTED GLOBAL)
-set_target_properties(zlg_zuds PROPERTIES
-  IMPORTED_LOCATION ${ZLG_ZUDS_LIB_PATH}
-)
+  add_library(zlg_zuds SHARED IMPORTED GLOBAL)
+  set_target_properties(zlg_zuds PROPERTIES
+    IMPORTED_LOCATION ${ZLG_ZUDS_LIB_PATH}
+  )
+  
+  message(STATUS "CAN FD support: ENABLED")
+else()
+  message(STATUS "CAN FD support: DISABLED")
+endif()
 
 # -----------------------------------------------------------------------------
 # ROS2 包依赖查找
@@ -80,10 +92,27 @@ find_package(hardware_interface REQUIRED)
 # -----------------------------------------------------------------------------
 # 创建 BrainCo 机械手驱动库
 # -----------------------------------------------------------------------------
-add_library(${PROJECT_NAME}
+set(${PROJECT_NAME}_SOURCES
   src/brainco_hand_api.cpp
   src/brainco_hand_hardware.cpp
+  src/transport_session_base.cpp
+  src/modbus_session.cpp
+  src/sdk_helpers.cpp
 )
+
+# 条件性地添加 CAN FD 源文件
+if(ENABLE_CANFD)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/canfd_session.cpp)
+endif()
+
+add_library(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
+
+# 设置编译定义（必须在 add_library 之后）
+if(ENABLE_CANFD)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_CANFD=1)
+else()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE ENABLE_CANFD=0)
+endif()
 
 # -----------------------------------------------------------------------------
 # 设置编译特性
@@ -119,15 +148,24 @@ ament_target_dependencies(
 # -----------------------------------------------------------------------------
 target_link_libraries(${PROJECT_NAME}
   brainco_stark_sdk
-  zlg_usbcanfd
-  zlg_zuds
 )
+
+# 条件性地链接 CAN FD 库
+if(ENABLE_CANFD)
+  target_link_libraries(${PROJECT_NAME}
+    zlg_usbcanfd
+    zlg_zuds
+  )
+endif()
 
 # 运行时确保可定位到 vendor 中的共享库（构建阶段与安装后）
 set(_brainco_build_rpath
   "${BRAINCO_STARK_SDK_LIB_DIR}"
-  "${ZLG_CANFD_VENDOR_DIR}"
 )
+
+if(ENABLE_CANFD)
+  list(APPEND _brainco_build_rpath "${ZLG_CANFD_VENDOR_DIR}")
+endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES
   BUILD_RPATH "${_brainco_build_rpath}"
   INSTALL_RPATH "\$ORIGIN/.."
@@ -148,12 +186,17 @@ install(
   DESTINATION include
 )
 
-# 安装随包分发的第三方共享库（Stark SDK + ZLG CANFD）
+# 安装随包分发的第三方共享库（Stark SDK + ZLG CANFD（如果启用））
 set(BRAINCO_VENDOR_SHARED_LIBS
   ${BRAINCO_STARK_SDK_LIB_PATH}
-  ${ZLG_CANFD_LIB_PATH}
-  ${ZLG_ZUDS_LIB_PATH}
 )
+
+if(ENABLE_CANFD)
+  list(APPEND BRAINCO_VENDOR_SHARED_LIBS
+    ${ZLG_CANFD_LIB_PATH}
+    ${ZLG_ZUDS_LIB_PATH}
+  )
+endif()
 
 install(
   FILES ${BRAINCO_VENDOR_SHARED_LIBS}

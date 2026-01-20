@@ -1,0 +1,6 @@
+2025-12-16T05:32:36.402454Z[INFO][src/utils/logging_desktop.rs:14] bc_stark_sdk version: 0.9.8
+2025-12-16T05:32:36.402465Z[INFO][src/stark/config.rs:30] Logging initialized with level: Info
+2025-12-16T05:32:36.402467Z[INFO][src/stark/config.rs:36] StarkSDK initialized, protocol_type: Modbus
+2025-12-16T05:32:36.402984Z[INFO][src/utils/logging_desktop.rs:14] bc_stark_sdk version: 0.9.8
+2025-12-16T05:32:36.402989Z[INFO][src/stark/config.rs:30] Logging initialized with level: Info
+2025-12-16T05:32:36.402991Z[INFO][src/stark/config.rs:36] StarkSDK initialized, protocol_type: Modbus
