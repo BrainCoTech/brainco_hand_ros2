@@ -321,7 +321,9 @@ auto BraincoHandHardware::init_parameters(const hardware_interface::HardwareInfo
     // CAN FD support is disabled at compile time
     if (protocol_lower == "canfd" || protocol_lower == "can" || protocol_lower == "can-fd")
     {
-      BRAINCO_HAND_LOG_ERROR("CAN FD protocol requested but CAN FD support is disabled at compile time. Please rebuild with ENABLE_CANFD=ON.");
+      BRAINCO_HAND_LOG_ERROR(
+        "CAN FD protocol requested but CAN FD support is disabled at compile time. Please rebuild "
+        "with ENABLE_CANFD=ON.");
       config_.transport.protocol = Protocol::kModbus;
     }
     else
@@ -544,10 +546,9 @@ auto BraincoHandHardware::open_connection() -> bool
   close_connection();
 
   api_.configure(config_.transport);
-  
-  const char * protocol_label =
-    config_.transport.protocol == Protocol::kCanfd ? "CANFD" : "Modbus";
-  
+
+  const char * protocol_label = config_.transport.protocol == Protocol::kCanfd ? "CANFD" : "Modbus";
+
   if (config_.transport.protocol == Protocol::kModbus)
   {
     if (config_.transport.modbus.auto_detect)
@@ -563,7 +564,7 @@ auto BraincoHandHardware::open_connection() -> bool
         config_.transport.modbus.port.c_str(), config_.transport.slave_id);
     }
   }
-  
+
   if (!api_.open())
   {
     BRAINCO_HAND_LOG_ERROR(

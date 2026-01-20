@@ -161,17 +161,12 @@ int32_t CanfdSession::rx_callback(
   return session->handle_rx(slave_id, can_id_out, data_out, data_len_out);
 }
 
-int32_t CanfdSession::noop_tx_callback(uint8_t, uint32_t, const uint8_t *, uintptr_t)
-{
-  return -1;
-}
+int32_t CanfdSession::noop_tx_callback(uint8_t, uint32_t, const uint8_t *, uintptr_t) { return -1; }
 
-int32_t CanfdSession::noop_rx_callback(uint8_t, uint32_t *, uint8_t *, uintptr_t *)
-{
-  return -1;
-}
+int32_t CanfdSession::noop_rx_callback(uint8_t, uint32_t *, uint8_t *, uintptr_t *) { return -1; }
 
-int32_t CanfdSession::handle_tx(uint8_t slave_id, uint32_t can_id, const uint8_t * data, uintptr_t data_len)
+int32_t CanfdSession::handle_tx(
+  uint8_t slave_id, uint32_t can_id, const uint8_t * data, uintptr_t data_len)
 {
   (void)slave_id;
   std::lock_guard<std::mutex> lock(instance_mutex_);
@@ -197,8 +192,7 @@ int32_t CanfdSession::handle_tx(uint8_t slave_id, uint32_t can_id, const uint8_t
   }
 
   const auto result = VCI_TransmitFD(
-    config_.canfd.device_type, config_.canfd.card_index, config_.canfd.channel_index, &message,
-    1);
+    config_.canfd.device_type, config_.canfd.card_index, config_.canfd.channel_index, &message, 1);
 
   return result == 1 ? 0 : -1;
 }
@@ -240,4 +234,3 @@ int32_t CanfdSession::handle_rx(
 }
 
 }  // namespace brainco_hand_driver
-

@@ -1,12 +1,12 @@
 #ifndef EXECUTE_COMMAND_HPP
 #define EXECUTE_COMMAND_HPP
 
+#include <array>
 #include <cstdio>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <array>
 
 class ExecuteCommand
 {
@@ -17,9 +17,12 @@ public:
     static constexpr size_t BUFFER_SIZE = 128;
     std::array<char, BUFFER_SIZE> buffer = {};
     std::string result;
-    
+
     // 自定义删除器，确保只调用一次pclose
-    auto deleter = [](FILE* f) { if (f) pclose(f); };
+    auto deleter = [](FILE * f)
+    {
+      if (f) pclose(f);
+    };
     std::unique_ptr<FILE, decltype(deleter)> pipe(popen(command.c_str(), "r"), deleter);
 
     if (!pipe)

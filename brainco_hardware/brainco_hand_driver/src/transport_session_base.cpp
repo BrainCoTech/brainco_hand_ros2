@@ -110,4 +110,3 @@ void SessionBase::clear_handler() { handler_ = nullptr; }
 DeviceHandler * SessionBase::handler() const { return handler_; }
 
 }  // namespace brainco_hand_driver
-

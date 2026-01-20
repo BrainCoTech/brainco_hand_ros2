@@ -19,8 +19,8 @@
 
 #include <filesystem>
 #include <fstream>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace brainco_hand_driver
 {
@@ -36,7 +36,7 @@ namespace
 std::vector<std::string> scan_serial_ports(const std::string & hint = "")
 {
   std::vector<std::string> ports;
-  
+
   // Common serial port patterns
   std::vector<std::string> patterns;
   if (!hint.empty())
@@ -47,7 +47,7 @@ std::vector<std::string> scan_serial_ports(const std::string & hint = "")
   {
     patterns = {"/dev/ttyUSB", "/dev/ttyACM", "/dev/ttyS"};
   }
-  
+
   for (const auto & pattern : patterns)
   {
     // Try ports from 0 to 15
@@ -60,7 +60,7 @@ std::vector<std::string> scan_serial_ports(const std::string & hint = "")
       }
     }
   }
-  
+
   return ports;
 }
 }  // namespace
@@ -90,37 +90,42 @@ bool ModbusSession::open()
 
     // Scan all available serial ports
     std::vector<std::string> available_ports = scan_serial_ports(hint ? std::string(hint) : "");
-    
+
     if (available_ports.empty())
     {
       BRAINCO_HAND_LOG_WARN("No serial ports found. Trying SDK auto-detection...");
     }
     else
     {
-      BRAINCO_HAND_LOG_INFO("Found %zu serial port(s), scanning for Revo2 devices...", available_ports.size());
+      BRAINCO_HAND_LOG_INFO(
+        "Found %zu serial port(s), scanning for Revo2 devices...", available_ports.size());
     }
 
     DeviceConfigPtr detected{nullptr};
     std::string used_port;
-    std::vector<std::pair<std::string, DeviceConfigPtr>> matching_devices;  // Devices matching requested slave_id
-    std::vector<std::pair<std::string, DeviceConfigPtr>> other_devices;      // Other devices
+    std::vector<std::pair<std::string, DeviceConfigPtr>>
+      matching_devices;  // Devices matching requested slave_id
+    std::vector<std::pair<std::string, DeviceConfigPtr>> other_devices;  // Other devices
 
     // First, try SDK's auto-detection (it's faster and more reliable)
-    DeviceConfigPtr sdk_detected{::auto_detect_modbus_revo2(hint, config_.modbus.auto_detect_quick)};
+    DeviceConfigPtr sdk_detected{
+      ::auto_detect_modbus_revo2(hint, config_.modbus.auto_detect_quick)};
     if (sdk_detected)
     {
       std::string detected_port = sdk_detected->port_name ? sdk_detected->port_name : std::string{};
       uint8_t detected_slave_id = sdk_detected->slave_id;
-      
+
       // Try to open the detected port
       DeviceHandler * test_handle = ::modbus_open(detected_port.c_str(), sdk_detected->baudrate);
       if (test_handle)
       {
         // Successfully opened, check if slave_id matches
         ::modbus_close(test_handle);
-        
-        // Create a new DeviceConfigPtr by re-detecting on the specific port to ensure we have the correct config
-        DeviceConfigPtr port_config{::auto_detect_modbus_revo2(detected_port.c_str(), config_.modbus.auto_detect_quick)};
+
+        // Create a new DeviceConfigPtr by re-detecting on the specific port to ensure we have the
+        // correct config
+        DeviceConfigPtr port_config{
+          ::auto_detect_modbus_revo2(detected_port.c_str(), config_.modbus.auto_detect_quick)};
         if (port_config)
         {
           if (requested_slave_id == 0 || detected_slave_id == requested_slave_id)
@@ -131,7 +136,9 @@ bool ModbusSession::open()
           {
             other_devices.push_back({detected_port, std::move(port_config)});
           }
-          BRAINCO_HAND_LOG_INFO("SDK auto-detection found device on %s (slave_id: %u)", detected_port.c_str(), detected_slave_id);
+          BRAINCO_HAND_LOG_INFO(
+            "SDK auto-detection found device on %s (slave_id: %u)", detected_port.c_str(),
+            detected_slave_id);
         }
       }
       else
@@ -147,38 +154,40 @@ bool ModbusSession::open()
     for (const auto & port : available_ports)
     {
       // Skip if this is the port SDK already detected (and it's in use)
-      if (sdk_detected && sdk_detected->port_name && 
-          std::string(sdk_detected->port_name) == port)
+      if (sdk_detected && sdk_detected->port_name && std::string(sdk_detected->port_name) == port)
       {
         continue;
       }
 
       BRAINCO_HAND_LOG_INFO("Scanning port: %s", port.c_str());
-      
+
       // Try to detect device on this specific port
-      DeviceConfigPtr port_detected{::auto_detect_modbus_revo2(port.c_str(), config_.modbus.auto_detect_quick)};
-      if (port_detected && port_detected->port_name && 
-          std::string(port_detected->port_name) == port)
+      DeviceConfigPtr port_detected{
+        ::auto_detect_modbus_revo2(port.c_str(), config_.modbus.auto_detect_quick)};
+      if (
+        port_detected && port_detected->port_name && std::string(port_detected->port_name) == port)
       {
         uint8_t detected_slave_id = port_detected->slave_id;
-        
+
         // Try to open the port to verify it's available
         DeviceHandler * test_handle = ::modbus_open(port.c_str(), port_detected->baudrate);
         if (test_handle)
         {
           // Successfully opened, categorize by slave_id
           ::modbus_close(test_handle);
-          
+
           if (requested_slave_id == 0 || detected_slave_id == requested_slave_id)
           {
             matching_devices.push_back({port, std::move(port_detected)});
-            BRAINCO_HAND_LOG_INFO("Found matching device on port: %s (slave_id: %u)", port.c_str(), detected_slave_id);
+            BRAINCO_HAND_LOG_INFO(
+              "Found matching device on port: %s (slave_id: %u)", port.c_str(), detected_slave_id);
           }
           else
           {
             other_devices.push_back({port, std::move(port_detected)});
-            BRAINCO_HAND_LOG_INFO("Found device on port: %s (slave_id: %u, not matching requested %u)", 
-                                  port.c_str(), detected_slave_id, requested_slave_id);
+            BRAINCO_HAND_LOG_INFO(
+              "Found device on port: %s (slave_id: %u, not matching requested %u)", port.c_str(),
+              detected_slave_id, requested_slave_id);
           }
         }
         else
@@ -194,29 +203,33 @@ bool ModbusSession::open()
       // Use the first matching device
       detected = std::move(matching_devices[0].second);
       used_port = matching_devices[0].first;
-      BRAINCO_HAND_LOG_INFO("Selected device with matching slave_id from port: %s", used_port.c_str());
+      BRAINCO_HAND_LOG_INFO(
+        "Selected device with matching slave_id from port: %s", used_port.c_str());
     }
     else if (!other_devices.empty() && requested_slave_id != 0)
     {
       // If no matching device found but other devices exist, warn and use the first one
       BRAINCO_HAND_LOG_WARN(
-        "No device found with requested slave_id (%u). Found %zu device(s) with different slave_id(s). "
+        "No device found with requested slave_id (%u). Found %zu device(s) with different "
+        "slave_id(s). "
         "This may indicate:"
         "\n  1. The device with slave_id %u is not connected"
         "\n  2. Wrong hand is connected (left/right)"
         "\n  3. Device slave_id has been changed",
         requested_slave_id, other_devices.size(), requested_slave_id);
-      
+
       // List all found devices
       for (const auto & dev : other_devices)
       {
         if (dev.second)
         {
-          BRAINCO_HAND_LOG_INFO("  - Port: %s, slave_id: %u", dev.first.c_str(), dev.second->slave_id);
+          BRAINCO_HAND_LOG_INFO(
+            "  - Port: %s, slave_id: %u", dev.first.c_str(), dev.second->slave_id);
         }
       }
-      
-      BRAINCO_HAND_LOG_WARN("Using first available device, but slave_id may not match your configuration.");
+
+      BRAINCO_HAND_LOG_WARN(
+        "Using first available device, but slave_id may not match your configuration.");
       detected = std::move(other_devices[0].second);
       used_port = other_devices[0].first;
     }
@@ -225,7 +238,9 @@ bool ModbusSession::open()
       // No specific slave_id requested, use first available device
       detected = std::move(other_devices[0].second);
       used_port = other_devices[0].first;
-      BRAINCO_HAND_LOG_INFO("No specific slave_id requested, using first available device from port: %s", used_port.c_str());
+      BRAINCO_HAND_LOG_INFO(
+        "No specific slave_id requested, using first available device from port: %s",
+        used_port.c_str());
     }
 
     if (!detected)
@@ -235,7 +250,8 @@ bool ModbusSession::open()
       {
         error_msg += " No device found with slave_id " + std::to_string(requested_slave_id) + ".";
       }
-      error_msg += " Please check:"
+      error_msg +=
+        " Please check:"
         "\n  1. Device is connected and powered on"
         "\n  2. USB cable is properly connected"
         "\n  3. Device permissions (try: sudo chmod 666 /dev/ttyUSB*)"
@@ -243,7 +259,8 @@ bool ModbusSession::open()
         "\n  5. Some ports may be in use by other hardware instances";
       if (requested_slave_id != 0)
       {
-        error_msg += "\n  6. Verify that the device with slave_id " + std::to_string(requested_slave_id) + " is connected";
+        error_msg += "\n  6. Verify that the device with slave_id " +
+                     std::to_string(requested_slave_id) + " is connected";
       }
       BRAINCO_HAND_LOG_ERROR("%s", error_msg.c_str());
       return false;
@@ -255,8 +272,8 @@ bool ModbusSession::open()
     config_.slave_id = detected->slave_id;
 
     BRAINCO_HAND_LOG_INFO(
-      "Auto-detection successful: port=%s baudrate=%u detected_slave_id=%u", connection.port.c_str(),
-      connection.baudrate, connection.slave_id);
+      "Auto-detection successful: port=%s baudrate=%u detected_slave_id=%u",
+      connection.port.c_str(), connection.baudrate, connection.slave_id);
 
     // For dual-hand scenarios: verify if detected slave_id matches the requested one
     if (requested_slave_id != 0 && requested_slave_id != connection.slave_id)
@@ -339,4 +356,3 @@ std::optional<BraincoHandApi::ConnectionInfo> ModbusSession::connection_info() c
 }
 
 }  // namespace brainco_hand_driver
-
