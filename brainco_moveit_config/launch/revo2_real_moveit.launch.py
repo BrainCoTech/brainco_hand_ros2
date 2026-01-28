@@ -228,7 +228,7 @@ def generate_launch_description():  # noqa: D401
     robot_description = {"robot_description": ParameterValue(robot_description_content, value_type=str)}
 
     controllers_yaml = PathJoinSubstitution([
-        FindPackageShare("brainco_hand_driver"),
+        FindPackageShare("brainco_moveit_config"),
         "config",
         ["revo2_", hand_type, "_controllers.yaml"],
     ])
