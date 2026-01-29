@@ -2,6 +2,18 @@
 Changelog for package brainco_hand_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.0 (2026-01-29)
+------------------
+
+* Changed default controller to joint_trajectory_controller
+* Changed default configuration to not use namespace
+* Added EtherCAT download link in documentation
+* Added compilation selection support for different protocols (Modbus/CAN FD/EtherCAT)
+* Split driver and moveit packages for better modularity
+* Updated SDK to version 1.0.0
+* Fixed dlopen error for libusbcanfd.so.1.0.12 library
+* Fixed C++ compilation warnings
+
 1.1.0 (2025-11-07)
 ------------------
 
