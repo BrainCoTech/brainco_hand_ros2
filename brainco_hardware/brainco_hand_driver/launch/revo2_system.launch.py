@@ -41,8 +41,9 @@ def generate_launch_description():
 
     # 根据 hand_type 动态生成控制器名称
     robot_controller = [hand_type, "_revo2_hand_controller"]
-    # 每只手使用独立 namespace：left_hand / right_hand
-    hand_namespace = PythonExpression(["'", hand_type, "'.lower() + '_hand'"])
+    # 默认不使用 namespace
+    # hand_namespace = PythonExpression(["'", hand_type, "'.lower() + '_hand'"])
+    hand_namespace = ""
 
     protocol_config_default = PathJoinSubstitution(
         [
