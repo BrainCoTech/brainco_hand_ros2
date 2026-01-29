@@ -40,9 +40,11 @@ def generate_launch_description():
     protocol_config_override = LaunchConfiguration("protocol_config_file")
 
     # 根据 hand_type 动态生成控制器名称
-    robot_controller = [hand_type, "_revo2_hand_controller"]
-    # 每只手使用独立 namespace：left_hand / right_hand
-    hand_namespace = PythonExpression(["'", hand_type, "'.lower() + '_hand'"])
+    robot_controller = [hand_type, "_revo2_hand_controller"]  # 轨迹控制器（默认激活）
+    position_controller = [hand_type, "_revo2_hand_position_controller"]  # 位置控制器（仅加载，不激活）
+    # 默认不使用 namespace
+    # hand_namespace = PythonExpression(["'", hand_type, "'.lower() + '_hand'"])
+    hand_namespace = ""
 
     protocol_config_default = PathJoinSubstitution(
         [
@@ -138,10 +140,27 @@ def generate_launch_description():
         output="both",
     )
 
+    # 位置控制器 spawner：仅加载但不激活
+    position_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        namespace=hand_namespace,
+        arguments=[
+            position_controller,
+            "-c",
+            controller_manager_full_name,
+            "-p",
+            robot_controllers,
+            "--inactive",  # 只加载，不激活
+        ],
+        output="both",
+    )
+
     nodes = [
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
+        position_controller_spawner,
         robot_controller_spawner,
     ]
 

@@ -179,18 +179,11 @@ rosdep update
 # Install all dependencies
 rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 
-# Build all packages (default configuration, CAN FD and EtherCAT disabled)
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver --continue-on-error
-
-# Source workspace
-source install/setup.bash
 ```
 
-#### Build Options
+#### Build
 
 **Method 1: Using Build Script (Recommended, Simple and Convenient)**
-
-The project provides a convenient build script `build.sh` for easier control of build options:
 
 ```bash
 # Default build (CAN FD and EtherCAT disabled)
@@ -215,9 +208,7 @@ The project provides a convenient build script `build.sh` for easier control of 
 ./build.sh --help
 ```
 
-**Method 2: Using colcon Commands (Advanced Users)**
-
-For more fine-grained control, you can use colcon commands directly:
+**Method 2: Using colcon Commands**
 
 ```bash
 # Default build (CAN FD and EtherCAT disabled)
@@ -229,43 +220,12 @@ colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON --packages-ignore 
 # Enable EtherCAT support
 colcon build --symlink-install
 
-# Enable both CAN FD and EtherCAT
-colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON
-
-# Release mode with all features enabled
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DENABLE_CANFD=ON
+# Build brainco_hand_driver package only (default Modbus)
+colcon build --packages-up-to brainco_hand_driver --symlink-install
 ```
-
-**Method 3: Build brainco_hand_driver Package Only**
-
-If you only want to build the `brainco_hand_driver` package:
-
-```bash
-# Method A: Using build.sh script (Recommended, automatically handles dependencies)
-./build.sh
-
-# Method B: Using --packages-up-to (Recommended, automatically builds dependencies)
-# Single package build (default, CAN FD disabled)
-colcon build --packages-up-to brainco_hand_driver --symlink-install --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
-
-# Single package build with CAN FD enabled
-colcon build --packages-up-to brainco_hand_driver --cmake-args -DENABLE_CANFD=ON --symlink-install --packages-ignore stark_ethercat_interface stark_ethercat_driver brainco_hand_ethercat_driver
-```
-
-**Important Notes:**
-- `brainco_hand_driver` depends on `revo2_description` package
-- If using `--packages-select`, you need to build dependencies first, otherwise error: `Failed to find revo2_description`
-- Recommended to use `--packages-up-to` or `build.sh` script, which automatically handle dependencies
-
-**Build Options Summary**
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `ENABLE_CANFD` | `OFF` | Whether to enable CAN FD support (requires ZLG USB-CAN FD library) |
-| EtherCAT packages | Disabled | Whether to build EtherCAT related packages (disabled by default) |
 
 **Notes:**
-- Enabling CAN FD support requires ZLG USB-CAN FD driver library, please ensure it is correctly placed in `brainco_hardware/brainco_hand_driver/vendor/usbcanfd_libusb_x64_1.0.12_251029/` directory
+- Enabling CAN FD support requires ZLG USB-CAN FD driver library, please ensure it is correctly placed in `brainco_hardware/brainco_hand_driver/vendor/usbcanfd_xxx/` directory
 - If CAN FD support is not enabled, launching nodes with CAN FD protocol will cause errors
 - If EtherCAT support is disabled, launching nodes with EtherCAT protocol will cause errors (packages not found)
 - Default configuration (CAN FD and EtherCAT disabled) can use Modbus protocol normally
@@ -280,6 +240,9 @@ If you have real Revo2 dexterous hand hardware, you can use `brainco_hand_driver
 ```bash
 # Launch right hand system (Modbus mode)
 ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right
+
+# Launch dual-hand system (Modbus mode)
+ros2 launch brainco_hand_driver dual_revo2_system.launch.py
 
 # Launch right hand system (with MoveIt)
 ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right
