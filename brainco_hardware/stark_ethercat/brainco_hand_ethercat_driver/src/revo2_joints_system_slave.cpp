@@ -345,7 +345,7 @@ void Revo2JointsSystemSlave::processData(size_t index, uint8_t * domain_address)
             }
             else
             {
-              raw_out = radianToRevo2(position_cmd_rad);
+              raw_out = radianToRevo2(position_cmd_rad, i);
             }
           }
           write_s16(domain_address + i * 2, raw_out);
@@ -450,7 +450,7 @@ void Revo2JointsSystemSlave::processData(size_t index, uint8_t * domain_address)
             else
             {
               // 千分比模式
-              raw_out = radianToRevo2(position_cmd_rad);
+              raw_out = radianToRevo2(position_cmd_rad, active_finger_id_);
             }
             write_s16(domain_address, raw_out);
 
@@ -508,7 +508,7 @@ void Revo2JointsSystemSlave::processData(size_t index, uint8_t * domain_address)
         else
         {
           // 千分比模式
-          radian_pos = revo2ToRadian(static_cast<int16_t>(raw));
+          radian_pos = revo2ToRadian(static_cast<int16_t>(raw), i);
         }
         current_position_states_[i] = radian_pos;
         int pos_idx = joint_interfaces_[i].position_state;
@@ -543,7 +543,7 @@ void Revo2JointsSystemSlave::processData(size_t index, uint8_t * domain_address)
         else
         {
           // 千分比模式
-          radian_spd = revo2ToRadian(static_cast<int16_t>(raw));
+          radian_spd = revo2ToRadian(static_cast<int16_t>(raw), i);
         }
         current_velocity_states_[i] = radian_spd;
 
@@ -775,16 +775,17 @@ void Revo2JointsSystemSlave::updateActiveFingerFromCommands()
   }
 }
 
-double Revo2JointsSystemSlave::revo2ToRadian(int16_t revo2_pos)
+double Revo2JointsSystemSlave::revo2ToRadian(int16_t revo2_pos, size_t finger_idx)
 {
-  // XXX 千分比与弧度线性映射
-  return 0.001 + (static_cast<double>(revo2_pos - 1) * (1.57 - 0.001) / (1000 - 1));
+  const double max_rad = kPosMaxRad[finger_idx];
+  return kPosMinRad +
+         (static_cast<double>(revo2_pos - 1) * (max_rad - kPosMinRad) / (1000.0 - 1.0));
 }
 
-int16_t Revo2JointsSystemSlave::radianToRevo2(double radian_pos)
+int16_t Revo2JointsSystemSlave::radianToRevo2(double radian_pos, size_t finger_idx)
 {
-  // XXX 弧度与千分比线性映射
-  double scaled = 1 + ((radian_pos - 0.001) * (1000 - 1) / (1.57 - 0.001));
+  const double max_rad = kPosMaxRad[finger_idx];
+  double scaled = 1.0 + ((radian_pos - kPosMinRad) * (1000.0 - 1.0) / (max_rad - kPosMinRad));
   return static_cast<int16_t>(std::round(std::clamp(scaled, 1.0, 1000.0)));
 }
 

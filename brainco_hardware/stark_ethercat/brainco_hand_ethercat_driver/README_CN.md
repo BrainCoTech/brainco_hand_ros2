@@ -463,8 +463,8 @@ state interfaces
 
 | 关节名称 | 描述 | 角度范围（弧度） | 最大角度（度） |
 |---------|------|----------------|--------------|
-| `right_thumb_proximal_joint` | 拇指近端关节 | 0 ~ 1.03 | 59 |
-| `right_thumb_metacarpal_joint` | 拇指掌骨关节 | 0 ~ 1.57 | 90 |
+| `right_thumb_proximal_joint` | 拇指近端关节 | 0 ~ 1.04720 | 60 |
+| `right_thumb_metacarpal_joint` | 拇指掌骨关节 | 0 ~ 1.55334 | 89 |
 | `right_index_proximal_joint` | 食指近端关节 | 0 ~ 1.41 | 81 |
 | `right_middle_proximal_joint` | 中指近端关节 | 0 ~ 1.41 | 81 |
 | `right_ring_proximal_joint` | 无名指近端关节 | 0 ~ 1.41 | 81 |
@@ -474,8 +474,8 @@ state interfaces
 
 | 关节名称 | 描述 | 角度范围（弧度） | 最大角度（度） |
 |---------|------|----------------|--------------|
-| `left_thumb_proximal_joint` | 拇指近端关节 | 0 ~ 1.03 | 59 |
-| `left_thumb_metacarpal_joint` | 拇指掌骨关节 | 0 ~ 1.57 | 90 |
+| `left_thumb_proximal_joint` | 拇指近端关节 | 0 ~ 1.04720 | 60 |
+| `left_thumb_metacarpal_joint` | 拇指掌骨关节 | 0 ~ 1.55334 | 89 |
 | `left_index_proximal_joint` | 食指近端关节 | 0 ~ 1.41 | 81 |
 | `left_middle_proximal_joint` | 中指近端关节 | 0 ~ 1.41 | 81 |
 | `left_ring_proximal_joint` | 无名指近端关节 | 0 ~ 1.41 | 81 |

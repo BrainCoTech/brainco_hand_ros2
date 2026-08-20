@@ -127,9 +127,14 @@ private:
   // 单手指控制更新
   void updateActiveFingerFromCommands();
 
+  static constexpr double kPosMinRad = 0.001;
+  // Finger order: thumb flex, thumb abduct, index, middle, ring, pinky
+  static constexpr std::array<double, NUM_FINGER_MOTORS> kPosMaxRad = {
+    1.04720, 1.55334, 1.41, 1.41, 1.41, 1.41};
+
   // 单位转换
-  double revo2ToRadian(int16_t revo2_pos);
-  int16_t radianToRevo2(double radian_pos);
+  double revo2ToRadian(int16_t revo2_pos, size_t finger_idx);
+  int16_t radianToRevo2(double radian_pos, size_t finger_idx);
 
   // 状态转换
   const char * getMotorStatusString(uint16_t status);

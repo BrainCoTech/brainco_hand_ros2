@@ -462,8 +462,8 @@ state interfaces
 
 | Joint Name | Description | Angle Range (rad) | Max Angle (deg) |
 |------------|-------------|-------------------|-----------------|
-| `right_thumb_proximal_joint` | Thumb proximal joint | 0 ~ 1.03 | 59 |
-| `right_thumb_metacarpal_joint` | Thumb metacarpal joint | 0 ~ 1.57 | 90 |
+| `right_thumb_proximal_joint` | Thumb proximal joint | 0 ~ 1.04720 | 60 |
+| `right_thumb_metacarpal_joint` | Thumb metacarpal joint | 0 ~ 1.55334 | 89 |
 | `right_index_proximal_joint` | Index finger proximal joint | 0 ~ 1.41 | 81 |
 | `right_middle_proximal_joint` | Middle finger proximal joint | 0 ~ 1.41 | 81 |
 | `right_ring_proximal_joint` | Ring finger proximal joint | 0 ~ 1.41 | 81 |
@@ -473,8 +473,8 @@ state interfaces
 
 | Joint Name | Description | Angle Range (rad) | Max Angle (deg) |
 |------------|-------------|-------------------|-----------------|
-| `left_thumb_proximal_joint` | Thumb proximal joint | 0 ~ 1.03 | 59 |
-| `left_thumb_metacarpal_joint` | Thumb metacarpal joint | 0 ~ 1.57 | 90 |
+| `left_thumb_proximal_joint` | Thumb proximal joint | 0 ~ 1.04720 | 60 |
+| `left_thumb_metacarpal_joint` | Thumb metacarpal joint | 0 ~ 1.55334 | 89 |
 | `left_index_proximal_joint` | Index finger proximal joint | 0 ~ 1.41 | 81 |
 | `left_middle_proximal_joint` | Middle finger proximal joint | 0 ~ 1.41 | 81 |
 | `left_ring_proximal_joint` | Ring finger proximal joint | 0 ~ 1.41 | 81 |

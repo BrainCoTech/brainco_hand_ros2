@@ -107,7 +107,7 @@
         <!-- Left mimic joints -->
         <joint name="left_thumb_distal_joint">
             <param name="mimic">left_thumb_proximal_joint</param>
-            <param name="multiplier">1</param>
+            <param name="multiplier">1.0945</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -115,7 +115,7 @@
         </joint>
         <joint name="left_index_distal_joint">
             <param name="mimic">left_index_proximal_joint</param>
-            <param name="multiplier">1.155</param>
+            <param name="multiplier">1.131</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -123,7 +123,7 @@
         </joint>
         <joint name="left_middle_distal_joint">
             <param name="mimic">left_middle_proximal_joint</param>
-            <param name="multiplier">1.155</param>
+            <param name="multiplier">1.267</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -131,7 +131,7 @@
         </joint>
         <joint name="left_ring_distal_joint">
             <param name="mimic">left_ring_proximal_joint</param>
-            <param name="multiplier">1.155</param>
+            <param name="multiplier">1.252</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -139,7 +139,7 @@
         </joint>
         <joint name="left_pinky_distal_joint">
             <param name="mimic">left_pinky_proximal_joint</param>
-            <param name="multiplier">1.155</param>
+            <param name="multiplier">1.271</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -181,7 +181,7 @@
         <!-- Right mimic joints -->
         <joint name="right_thumb_distal_joint">
             <param name="mimic">right_thumb_proximal_joint</param>
-            <param name="multiplier">1</param>
+            <param name="multiplier">1.0945</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -189,7 +189,7 @@
         </joint>
         <joint name="right_index_distal_joint">
             <param name="mimic">right_index_proximal_joint</param>
-            <param name="multiplier">1.155</param>
+            <param name="multiplier">1.131</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -197,7 +197,7 @@
         </joint>
         <joint name="right_middle_distal_joint">
             <param name="mimic">right_middle_proximal_joint</param>
-            <param name="multiplier">1.155</param>
+            <param name="multiplier">1.267</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -205,7 +205,7 @@
         </joint>
         <joint name="right_ring_distal_joint">
             <param name="mimic">right_ring_proximal_joint</param>
-            <param name="multiplier">1.155</param>
+            <param name="multiplier">1.252</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -213,7 +213,7 @@
         </joint>
         <joint name="right_pinky_distal_joint">
             <param name="mimic">right_pinky_proximal_joint</param>
-            <param name="multiplier">1.155</param>
+            <param name="multiplier">1.271</param>
             <command_interface name="position"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
