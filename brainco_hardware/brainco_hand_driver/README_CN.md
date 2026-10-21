@@ -38,7 +38,7 @@ BrainCo Hand Driver 驱动包为 BrainCo Revo2 灵巧手提供基于 Modbus/CAN 
 
 ### BrainCo Stark SDK
 
-SDK 位于 `vendor/` 目录，可直接使用。如需更新：
+SDK 头文件保留在 `vendor/` 中，共享库由脚本下载到本地，不纳入 Git。首次构建前，请在目标机器执行以下命令，安装固定版本 v2.0.8。Linux 下脚本会选择 x86_64 或 ARM64 包，并检查缓存库的架构。下载需要网络连接，以及 `curl` 或 `wget`、`unzip` 和 `file`。
 
 ```bash
 cd brainco_hardware/brainco_hand_driver

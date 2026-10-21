@@ -21,3 +21,8 @@ compile_commands.json
 brainco_hardware/brainco_hand_driver/scripts/logs/*
 logs/*
 .history/*
+
+# Downloaded Stark SDK binaries and local installation state
+brainco_hardware/brainco_hand_driver/vendor/dist/shared/
+brainco_hardware/brainco_hand_driver/vendor/.sdk-platform
+brainco_hardware/brainco_hand_driver/vendor/.sdk-download.*/
