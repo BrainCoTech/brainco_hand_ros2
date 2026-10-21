@@ -183,6 +183,12 @@ rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 
 #### Build
 
+Before building, download the pinned Stark SDK on the target Linux machine. Shared libraries are not tracked by Git; the script selects x86_64 or ARM64. Install `curl` or `wget`, `unzip`, and `file` if needed.
+
+```bash
+bash <workspace>/src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
+```
+
 **Method 1: Using Build Script (Recommended, Simple and Convenient)**
 
 ```bash

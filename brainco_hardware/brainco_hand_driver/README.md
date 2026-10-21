@@ -38,7 +38,7 @@ The BrainCo Hand Driver package provides a ROS2 hardware interface for BrainCo R
 
 ### BrainCo Stark SDK
 
-The SDK is located in the `vendor/` directory and can be used directly. To update:
+SDK headers are tracked in `vendor/`; shared libraries are downloaded locally and ignored by Git. Before the first build, run the following command on the target machine to install the pinned SDK version (v2.0.8). On Linux, the script selects x86_64 or ARM64 and checks the cached library architecture. Downloading requires network access, `curl` or `wget`, `unzip`, and `file`.
 
 ```bash
 cd brainco_hardware/brainco_hand_driver
