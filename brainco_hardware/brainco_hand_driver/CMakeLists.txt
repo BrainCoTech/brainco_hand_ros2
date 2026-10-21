@@ -259,6 +259,10 @@ ament_export_dependencies(
 # -----------------------------------------------------------------------------
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
+  # Keep the generated upstream SDK header unchanged; lint project code normally.
+  list(APPEND ament_cmake_cpplint_ADDITIONAL_EXCLUDE
+    "${BRAINCO_STARK_SDK_INCLUDE_DIR}/stark-sdk.h"
+  )
   # 自动查找和配置代码质量检查工具（如 cppcheck, cpplint 等）
   ament_lint_auto_find_test_dependencies()
 endif()
