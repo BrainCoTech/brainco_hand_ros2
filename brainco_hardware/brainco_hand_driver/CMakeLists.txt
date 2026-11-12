@@ -45,6 +45,7 @@ endif()
 add_library(brainco_stark_sdk SHARED IMPORTED GLOBAL)
 set_target_properties(brainco_stark_sdk PROPERTIES
   IMPORTED_LOCATION ${BRAINCO_STARK_SDK_LIB_PATH}           # 库文件位置
+  IMPORTED_NO_SONAME TRUE
   INTERFACE_INCLUDE_DIRECTORIES ${BRAINCO_STARK_SDK_INCLUDE_DIR}  # 头文件目录
 )
 
@@ -168,7 +169,7 @@ if(ENABLE_CANFD)
 endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES
   BUILD_RPATH "${_brainco_build_rpath}"
-  INSTALL_RPATH "\$ORIGIN/.."
+  INSTALL_RPATH "\$ORIGIN"
 )
 
 # -----------------------------------------------------------------------------
