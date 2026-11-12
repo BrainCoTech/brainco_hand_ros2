@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENDOR_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)/vendor"
-SDK_VERSION="v2.0.8"
+SDK_VERSION="v2.0.9"
 BASE_URL="https://app.brainco.cn/universal/bc-stark-sdk/libs/${SDK_VERSION}"
 VERSION_FILE="${VENDOR_DIR}/VERSION"
 PLATFORM_FILE="${VENDOR_DIR}/.sdk-platform"

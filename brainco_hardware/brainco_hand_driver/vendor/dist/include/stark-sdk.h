@@ -201,7 +201,7 @@ enum StarkHardwareType : uint8_t {
   /// When migrating older integrations that used 4 for Revo2Touch, use this
   /// named constant instead. Value 4 now selects Revo1AdvancedTouch.
   STARK_HARDWARE_TYPE_REVO2_TOUCH = 11,
-  /// Revo2 with pressure/modulus touch sensor
+  /// Revo2 with pressure touch sensor
   STARK_HARDWARE_TYPE_REVO2_TOUCH_PRESSURE = 12,
   /// Revo2 with 3D force matrix touch sensor
   STARK_HARDWARE_TYPE_REVO2_TOUCH_FORCE3D = 13,
@@ -299,7 +299,7 @@ struct CTouchFingerItem {
 
 /// Pressure sensor detailed data (Detailed mode)
 ///
-/// For Modulus pressure touch sensor detailed sensor point data
+/// For pressure touch sensor detailed sensor point data
 /// - Fingers: 9 sensor points
 /// - Palm: 46 sensor points
 struct PressureDetailedItem {
@@ -1170,7 +1170,7 @@ DeviceHandler *init_from_detected(const CDetectedDevice *device);
 /// Close device handler based on protocol type.
 ///
 /// Convenience function that handles cleanup for any protocol type.
-/// Automatically closes ZQWL adapter for CAN/CANFD protocols.
+/// Automatically closes built-in CAN adapters for CAN/CANFD protocols.
 ///
 /// # Parameters
 /// - handle: Device handler to close
@@ -1739,6 +1739,7 @@ int32_t stark_enable_touch_sensor_with_status(DeviceHandler *handle,
 /// Get raw channel data from the tactile sensors.
 /// Returns a pointer to `TouchRawData`; call `free_touch_raw_data` to free it.
 /// Returns NULL on failure.
+/// Revo2 uses the first 6 entries of each finger array; remaining entries are zero.
 CTouchRawData *stark_get_touch_raw_data(DeviceHandler *handle, uint8_t slave_id);
 
 /// Read 3D force, proximity and status for a single finger.
@@ -1814,7 +1815,7 @@ int32_t stark_calibrate_touch_sensor_with_status(DeviceHandler *handle,
 /// Returns: true if uses Revo2 Touch API, false otherwise.
 bool stark_uses_revo2_touch_api(uint8_t hw_type);
 
-/// Check if hardware type uses Pressure/Modulus Touch API.
+/// Check if hardware type uses Pressure Touch API.
 /// Pressure Touch API uses completely different data structure (pressure sensors).
 /// Returns: true if uses Pressure Touch API, false otherwise.
 bool stark_uses_pressure_touch_api(uint8_t hw_type);
