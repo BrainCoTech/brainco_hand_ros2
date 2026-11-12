@@ -39,18 +39,27 @@ public:
   [[nodiscard]] std::optional<BraincoHandApi::ConnectionInfo> connection_info() const override;
 
 private:
-  using CanfdHandlePtr = std::unique_ptr<DeviceHandler, decltype(&free_device_handler)>;
+  struct CanfdHandleDeleter
+  {
+    void operator()(DeviceHandler * handle) const
+    {
+      ::close_device_handler(handle, STARK_PROTOCOL_TYPE_CAN_FD);
+    }
+  };
+  using CanfdHandlePtr = std::unique_ptr<DeviceHandler, CanfdHandleDeleter>;
 
   static int32_t tx_callback(
     uint8_t slave_id, uint32_t can_id, const uint8_t * data, uintptr_t data_len);
   static int32_t rx_callback(
-    uint8_t slave_id, uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out);
+    uint8_t slave_id, uint32_t expected_can_id, uint8_t expected_frames,
+    uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out);
   static int32_t noop_tx_callback(uint8_t, uint32_t, const uint8_t *, uintptr_t);
-  static int32_t noop_rx_callback(uint8_t, uint32_t *, uint8_t *, uintptr_t *);
+  static int32_t noop_rx_callback(uint8_t, uint32_t, uint8_t, uint32_t *, uint8_t *, uintptr_t *);
 
   int32_t handle_tx(uint8_t slave_id, uint32_t can_id, const uint8_t * data, uintptr_t data_len);
   int32_t handle_rx(
-    uint8_t slave_id, uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out);
+    uint8_t slave_id, uint32_t expected_can_id, uint8_t expected_frames,
+    uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out);
 
   CanfdHandlePtr handle_;
   bool device_started_{false};

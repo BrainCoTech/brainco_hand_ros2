@@ -25,7 +25,7 @@ namespace brainco_hand_driver
 std::atomic<CanfdSession *> CanfdSession::active_instance_{nullptr};
 
 CanfdSession::CanfdSession(BraincoHandApi::DriverConfig & config)
-: SessionBase(config), handle_(nullptr, &free_device_handler)
+: SessionBase(config), handle_(nullptr)
 {
 }
 
@@ -90,10 +90,10 @@ bool CanfdSession::open()
   set_can_rx_callback(&CanfdSession::rx_callback);
   callbacks_registered_ = true;
 
-  DeviceHandler * raw = ::canfd_init(canfd.master_id);
+  DeviceHandler * raw = ::init_device_handler(STARK_PROTOCOL_TYPE_CAN_FD, canfd.master_id);
   if (!raw)
   {
-    BRAINCO_HAND_LOG_ERROR("canfd_init failed");
+    BRAINCO_HAND_LOG_ERROR("init_device_handler failed");
     close();
     return false;
   }
@@ -151,19 +151,25 @@ int32_t CanfdSession::tx_callback(
 }
 
 int32_t CanfdSession::rx_callback(
-  uint8_t slave_id, uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
+  uint8_t slave_id, uint32_t expected_can_id, uint8_t expected_frames,
+  uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
 {
   auto * session = active_instance_.load(std::memory_order_acquire);
   if (!session)
   {
     return -1;
   }
-  return session->handle_rx(slave_id, can_id_out, data_out, data_len_out);
+  return session->handle_rx(
+    slave_id, expected_can_id, expected_frames, can_id_out, data_out, data_len_out);
 }
 
 int32_t CanfdSession::noop_tx_callback(uint8_t, uint32_t, const uint8_t *, uintptr_t) { return -1; }
 
-int32_t CanfdSession::noop_rx_callback(uint8_t, uint32_t *, uint8_t *, uintptr_t *) { return -1; }
+int32_t CanfdSession::noop_rx_callback(
+  uint8_t, uint32_t, uint8_t, uint32_t *, uint8_t *, uintptr_t *)
+{
+  return -1;
+}
 
 int32_t CanfdSession::handle_tx(
   uint8_t slave_id, uint32_t can_id, const uint8_t * data, uintptr_t data_len)
@@ -198,7 +204,8 @@ int32_t CanfdSession::handle_tx(
 }
 
 int32_t CanfdSession::handle_rx(
-  uint8_t slave_id, uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
+  uint8_t slave_id, uint32_t expected_can_id, uint8_t expected_frames,
+  uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
 {
   (void)slave_id;
   if (!can_id_out || !data_out || !data_len_out)
@@ -221,7 +228,16 @@ int32_t CanfdSession::handle_rx(
     return -1;
   }
 
-  const auto & frame = rx_buffer_.front();
+  (void)expected_frames;  // CAN FD responses fit in one frame.
+  const auto end = rx_buffer_.begin() + std::min<std::size_t>(received, rx_buffer_.size());
+  const auto match = std::find_if(rx_buffer_.begin(), end, [expected_can_id](const auto & frame) {
+    return frame.hdr.id == expected_can_id;
+  });
+  if (match == end)
+  {
+    return -1;
+  }
+  const auto & frame = *match;
   const auto payload_len = static_cast<uint8_t>(
     std::min<uintptr_t>(static_cast<uintptr_t>(frame.hdr.len), static_cast<uintptr_t>(64)));
   *can_id_out = frame.hdr.id;

@@ -45,6 +45,7 @@ endif()
 add_library(brainco_stark_sdk SHARED IMPORTED GLOBAL)
 set_target_properties(brainco_stark_sdk PROPERTIES
   IMPORTED_LOCATION ${BRAINCO_STARK_SDK_LIB_PATH}           # 库文件位置
+  IMPORTED_NO_SONAME TRUE
   INTERFACE_INCLUDE_DIRECTORIES ${BRAINCO_STARK_SDK_INCLUDE_DIR}  # 头文件目录
 )
 
@@ -168,7 +169,7 @@ if(ENABLE_CANFD)
 endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES
   BUILD_RPATH "${_brainco_build_rpath}"
-  INSTALL_RPATH "\$ORIGIN/.."
+  INSTALL_RPATH "\$ORIGIN"
 )
 
 # -----------------------------------------------------------------------------
@@ -259,6 +260,10 @@ ament_export_dependencies(
 # -----------------------------------------------------------------------------
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
+  # Keep the generated upstream SDK header unchanged; lint project code normally.
+  list(APPEND ament_cmake_cpplint_ADDITIONAL_EXCLUDE
+    "${BRAINCO_STARK_SDK_INCLUDE_DIR}/stark-sdk.h"
+  )
   # 自动查找和配置代码质量检查工具（如 cppcheck, cpplint 等）
   ament_lint_auto_find_test_dependencies()
 endif()

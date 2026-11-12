@@ -19,7 +19,7 @@
 namespace brainco_hand_driver
 {
 
-void DeviceConfigDeleter::operator()(DeviceConfig * config) const
+void DeviceConfigDeleter::operator()(CDeviceConfig * config) const
 {
   if (config)
   {
@@ -27,7 +27,7 @@ void DeviceConfigDeleter::operator()(DeviceConfig * config) const
   }
 }
 
-void DeviceInfoDeleter::operator()(DeviceInfo * info) const
+void DeviceInfoDeleter::operator()(CDeviceInfo * info) const
 {
   if (info)
   {
@@ -35,7 +35,7 @@ void DeviceInfoDeleter::operator()(DeviceInfo * info) const
   }
 }
 
-void MotorStatusDeleter::operator()(MotorStatusData * data) const
+void MotorStatusDeleter::operator()(CMotorStatusData * data) const
 {
   if (data)
   {

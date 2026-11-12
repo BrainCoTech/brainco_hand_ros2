@@ -22,10 +22,10 @@
 #include <string>
 
 // Forward declarations from Stark SDK to decouple headers.
-struct DeviceConfig;
+struct CDeviceConfig;
 struct DeviceHandler;
-struct DeviceInfo;
-struct MotorStatusData;
+struct CDeviceInfo;
+struct CMotorStatusData;
 
 namespace brainco_hand_driver
 {
