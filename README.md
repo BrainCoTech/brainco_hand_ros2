@@ -72,7 +72,7 @@ brainco_hand_ros2/
 - RViz visualization support
 - Complete joint and link definitions
 
-**Detailed Documentation**: Please refer to [revo2_description/README_CN.md](revo2_description/README_CN.md)
+The model package is imported by `vcs import` from `brainco_hand.repos`. See the [Revo 2 model documentation](https://github.com/BrainCoTech/revo2_description/blob/main/README.md).
 
 ### 2. brainco_hardware
 
@@ -139,17 +139,17 @@ brainco_hand_ros2/
 echo $ROS_DISTRO  # Should output: humble
 
 # Create workspace (if not already created)
-mkdir -p <workspace>/src
-cd <workspace>
+mkdir -p ~/brainco_ws/src
+cd ~/brainco_ws
 ```
 
-**Note**: Please replace `<workspace>` with your workspace path, for example `~/brainco_ws`.
+The commands use `~/brainco_ws`. If you use a different workspace, substitute its path throughout.
 
 ### 2. Clone Repository
 
 ```bash
 # Enter workspace src directory
-cd <workspace>/src
+cd ~/brainco_ws/src
 
 # Clone main repository
 git clone https://github.com/BrainCoTech/brainco_hand_ros2.git
@@ -168,7 +168,7 @@ sudo apt-get install python3-vcstool
 
 ```bash
 # Return to workspace root directory
-cd <workspace>
+cd ~/brainco_ws
 
 # Update package list
 sudo apt-get update

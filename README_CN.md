@@ -72,7 +72,7 @@ brainco_hand_ros2/
 - RViz 可视化支持
 - 完整的关节和链接定义
 
-**详细文档**：请参阅 [revo2_description/README_CN.md](revo2_description/README_CN.md)
+模型包由 `vcs import` 根据 `brainco_hand.repos` 导入。模型清单和 RViz 用法见 [Revo 2 模型文档](https://github.com/BrainCoTech/revo2_description/blob/main/README_CN.md)。
 
 ### 2. brainco_hardware
 
@@ -139,17 +139,17 @@ brainco_hand_ros2/
 echo $ROS_DISTRO  # 应该输出: humble
 
 # 创建工作空间（如果还没有）
-mkdir -p <workspace>/src
-cd <workspace>
+mkdir -p ~/brainco_ws/src
+cd ~/brainco_ws
 ```
 
-**注意**：请将 `<workspace>` 替换为您的工作空间路径，例如 `~/brainco_ws`。
+命令以 `~/brainco_ws` 为例。使用其他工作空间时，请统一替换路径。
 
 ### 2. 克隆仓库
 
 ```bash
 # 进入工作空间 src 目录
-cd <workspace>/src
+cd ~/brainco_ws/src
 
 # 克隆主仓库
 git clone https://github.com/BrainCoTech/brainco_hand_ros2.git
@@ -168,7 +168,7 @@ sudo apt-get install python3-vcstool
 
 ```bash
 # 返回工作空间根目录
-cd <workspace>
+cd ~/brainco_ws
 
 # 更新软件包列表
 sudo apt-get update
