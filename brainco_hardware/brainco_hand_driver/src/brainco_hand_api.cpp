@@ -88,10 +88,7 @@ auto BraincoHandApi::configure(const DriverConfig & config) -> void
   close();
   impl_->config = config;
 
-  const auto protocol_type =
-    (config.protocol == Protocol::kCanfd) ? STARK_PROTOCOL_TYPE_CAN_FD : STARK_PROTOCOL_TYPE_MODBUS;
-
-  ::init_cfg(protocol_type, to_sdk_log_level(config.log_level));
+  ::init_logging(to_sdk_log_level(config.log_level));
   impl_->rebuild_session();
 }
 

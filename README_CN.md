@@ -183,6 +183,12 @@ rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 
 #### 编译
 
+构建前，请在目标 Linux 机器下载固定版本的 Stark SDK。共享库不纳入 Git，脚本会选择 x86_64 或 ARM64 包；需要安装 `curl` 或 `wget`、`unzip` 和 `file`。
+
+```bash
+bash <workspace>/src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
+```
+
 **方式一：使用编译脚本（推荐，简洁方便）**
 
 ```bash

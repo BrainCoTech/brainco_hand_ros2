@@ -18,10 +18,10 @@
 #include "stark-sdk.h"
 
 // Forward declarations from Stark SDK
-struct DeviceConfig;
+struct CDeviceConfig;
 struct DeviceHandler;
-struct DeviceInfo;
-struct MotorStatusData;
+struct CDeviceInfo;
+struct CMotorStatusData;
 
 namespace brainco_hand_driver
 {
@@ -29,23 +29,23 @@ namespace brainco_hand_driver
 // Custom deleters for SDK resource management
 struct DeviceConfigDeleter
 {
-  void operator()(DeviceConfig * config) const;
+  void operator()(CDeviceConfig * config) const;
 };
 
 struct DeviceInfoDeleter
 {
-  void operator()(DeviceInfo * info) const;
+  void operator()(CDeviceInfo * info) const;
 };
 
 struct MotorStatusDeleter
 {
-  void operator()(MotorStatusData * data) const;
+  void operator()(CMotorStatusData * data) const;
 };
 
 // Smart pointer aliases for SDK resources
-using DeviceConfigPtr = std::unique_ptr<DeviceConfig, DeviceConfigDeleter>;
-using DeviceInfoPtr = std::unique_ptr<DeviceInfo, DeviceInfoDeleter>;
-using MotorStatusPtr = std::unique_ptr<MotorStatusData, MotorStatusDeleter>;
+using DeviceConfigPtr = std::unique_ptr<CDeviceConfig, DeviceConfigDeleter>;
+using DeviceInfoPtr = std::unique_ptr<CDeviceInfo, DeviceInfoDeleter>;
+using MotorStatusPtr = std::unique_ptr<CMotorStatusData, MotorStatusDeleter>;
 
 // Convert BraincoLogLevel to SDK LogLevel
 auto to_sdk_log_level(BraincoLogLevel level) -> LogLevel;
