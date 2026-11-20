@@ -1,0 +1,11 @@
+# Sensor bits: thumb=1, index=2, middle=4, ring=8, pinky=16; all=31.
+# Enable accepts 0..31. Calibration requires 1..31 and unloaded fingers.
+uint8 sensor_mask
+---
+# Success means transport success, not physical calibration completion.
+bool success
+# False means rejected by the driver before calling the SDK.
+bool sdk_called
+# Raw SDK return code, meaningful only when sdk_called is true.
+int32 sdk_status
+string message

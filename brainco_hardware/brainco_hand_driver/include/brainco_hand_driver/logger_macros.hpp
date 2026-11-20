@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 
-namespace brainco_hand_driver
+namespace revo2_driver
 {
 namespace logging
 {
@@ -47,40 +47,40 @@ inline std::string now_string()
 }
 
 }  // namespace logging
-}  // namespace brainco_hand_driver
+}  // namespace revo2_driver
 
 #define BRAINCO_HAND_LOG_DEBUG(format, ...)                                                        \
   do                                                                                               \
   {                                                                                                \
-    std::cout << "[" << ::brainco_hand_driver::logging::now_string() << " DEBUG] ["                \
-              << ::brainco_hand_driver::logging::format_location(__FILE__, __LINE__, __FUNCTION__) \
-              << "] " << ::brainco_hand_driver::logging::format_string(format, ##__VA_ARGS__)      \
+    std::cout << "[" << ::revo2_driver::logging::now_string() << " DEBUG] ["                \
+              << ::revo2_driver::logging::format_location(__FILE__, __LINE__, __FUNCTION__) \
+              << "] " << ::revo2_driver::logging::format_string(format, ##__VA_ARGS__)      \
               << std::endl;                                                                        \
   } while (0)
 
 #define BRAINCO_HAND_LOG_INFO(format, ...)                                                         \
   do                                                                                               \
   {                                                                                                \
-    std::cout << "[" << ::brainco_hand_driver::logging::now_string() << " INFO] ["                 \
-              << ::brainco_hand_driver::logging::format_location(__FILE__, __LINE__, __FUNCTION__) \
-              << "] " << ::brainco_hand_driver::logging::format_string(format, ##__VA_ARGS__)      \
+    std::cout << "[" << ::revo2_driver::logging::now_string() << " INFO] ["                 \
+              << ::revo2_driver::logging::format_location(__FILE__, __LINE__, __FUNCTION__) \
+              << "] " << ::revo2_driver::logging::format_string(format, ##__VA_ARGS__)      \
               << std::endl;                                                                        \
   } while (0)
 
 #define BRAINCO_HAND_LOG_WARN(format, ...)                                                         \
   do                                                                                               \
   {                                                                                                \
-    std::cout << "[" << ::brainco_hand_driver::logging::now_string() << " WARN] ["                 \
-              << ::brainco_hand_driver::logging::format_location(__FILE__, __LINE__, __FUNCTION__) \
-              << "] " << ::brainco_hand_driver::logging::format_string(format, ##__VA_ARGS__)      \
+    std::cout << "[" << ::revo2_driver::logging::now_string() << " WARN] ["                 \
+              << ::revo2_driver::logging::format_location(__FILE__, __LINE__, __FUNCTION__) \
+              << "] " << ::revo2_driver::logging::format_string(format, ##__VA_ARGS__)      \
               << std::endl;                                                                        \
   } while (0)
 
 #define BRAINCO_HAND_LOG_ERROR(format, ...)                                                        \
   do                                                                                               \
   {                                                                                                \
-    std::cout << "[" << ::brainco_hand_driver::logging::now_string() << " ERROR] ["                \
-              << ::brainco_hand_driver::logging::format_location(__FILE__, __LINE__, __FUNCTION__) \
-              << "] " << ::brainco_hand_driver::logging::format_string(format, ##__VA_ARGS__)      \
+    std::cout << "[" << ::revo2_driver::logging::now_string() << " ERROR] ["                \
+              << ::revo2_driver::logging::format_location(__FILE__, __LINE__, __FUNCTION__) \
+              << "] " << ::revo2_driver::logging::format_string(format, ##__VA_ARGS__)      \
               << std::endl;                                                                        \
   } while (0)

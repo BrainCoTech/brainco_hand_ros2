@@ -14,16 +14,10 @@
 
 #pragma once
 
-#include "brainco_hand_driver/brainco_hand_api.hpp"
+#include "revo2_driver/brainco_hand_api.hpp"
 #include "stark-sdk.h"
 
-// Forward declarations from Stark SDK
-struct CDeviceConfig;
-struct DeviceHandler;
-struct CDeviceInfo;
-struct CMotorStatusData;
-
-namespace brainco_hand_driver
+namespace revo2_driver
 {
 
 // Custom deleters for SDK resource management
@@ -42,12 +36,18 @@ struct MotorStatusDeleter
   void operator()(CMotorStatusData * data) const;
 };
 
+struct TouchFingerDataDeleter
+{
+  void operator()(CTouchFingerData * data) const;
+};
+
 // Smart pointer aliases for SDK resources
 using DeviceConfigPtr = std::unique_ptr<CDeviceConfig, DeviceConfigDeleter>;
 using DeviceInfoPtr = std::unique_ptr<CDeviceInfo, DeviceInfoDeleter>;
 using MotorStatusPtr = std::unique_ptr<CMotorStatusData, MotorStatusDeleter>;
+using TouchFingerDataPtr = std::unique_ptr<CTouchFingerData, TouchFingerDataDeleter>;
 
 // Convert BraincoLogLevel to SDK LogLevel
 auto to_sdk_log_level(BraincoLogLevel level) -> LogLevel;
 
-}  // namespace brainco_hand_driver
+}  // namespace revo2_driver

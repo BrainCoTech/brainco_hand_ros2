@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "brainco_hand_driver/sdk_helpers.hpp"
+#include "revo2_driver/sdk_helpers.hpp"
 
 #include "stark-sdk.h"
 
-namespace brainco_hand_driver
+namespace revo2_driver
 {
 
 void DeviceConfigDeleter::operator()(CDeviceConfig * config) const
@@ -43,6 +43,14 @@ void MotorStatusDeleter::operator()(CMotorStatusData * data) const
   }
 }
 
+void TouchFingerDataDeleter::operator()(CTouchFingerData * data) const
+{
+  if (data)
+  {
+    ::free_touch_finger_data(data);
+  }
+}
+
 auto to_sdk_log_level(BraincoLogLevel level) -> LogLevel
 {
   switch (level)
@@ -61,4 +69,4 @@ auto to_sdk_log_level(BraincoLogLevel level) -> LogLevel
   return LOG_LEVEL_INFO;
 }
 
-}  // namespace brainco_hand_driver
+}  // namespace revo2_driver

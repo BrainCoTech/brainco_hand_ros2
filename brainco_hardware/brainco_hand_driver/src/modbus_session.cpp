@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "brainco_hand_driver/modbus_session.hpp"
+#include "revo2_driver/modbus_session.hpp"
 
-#include "brainco_hand_driver/logger_macros.hpp"
-#include "brainco_hand_driver/sdk_helpers.hpp"
+#include "revo2_driver/logger_macros.hpp"
+#include "revo2_driver/sdk_helpers.hpp"
 
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
 
-namespace brainco_hand_driver
+namespace revo2_driver
 {
 
 ModbusSession::ModbusSession(BraincoHandApi::DriverConfig & config)
@@ -355,4 +355,4 @@ std::optional<BraincoHandApi::ConnectionInfo> ModbusSession::connection_info() c
   return resolved_connection_;
 }
 
-}  // namespace brainco_hand_driver
+}  // namespace revo2_driver

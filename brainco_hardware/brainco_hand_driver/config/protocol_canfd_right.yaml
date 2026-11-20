@@ -2,13 +2,29 @@ hardware:
   protocol: canfd
   slave_id: 127
   log_level: info
-  ensure_physical_mode: true
-  ctrl_param_duration_ms: 55
+  sdk_file_logging: false  # SDK logs/revo2_<timestamp>.log; restart required
+  finger_unit_mode: normalized
+  ensure_physical_mode: false
+  ctrl_param_duration_ms: 10
   position_command_scale: 572.9577951308232
   position_state_scale: 0.0017453292519943296
   velocity_state_scale: 0.0017453292519943296
+  velocity_command_scale: 572.9577951308232
+  velocity_device_min: -1000.0
+  velocity_device_max: 1000.0
   position_device_min: 0.0
   position_device_max: 1000.0
+  # Physical mode scale overrides are used only when finger_unit_mode: physical.
+  # Leave them commented until the physical angle range is calibrated on the real hand.
+  # The values below map ROS radians to device degrees as a starting point.
+  # physical_position_command_scale: 57.29577951308232
+  # physical_position_state_scale: 0.017453292519943295
+  # physical_velocity_state_scale: 0.017453292519943295
+  # physical_velocity_command_scale: 57.29577951308232
+  # physical_position_device_min: 0.0
+  # physical_position_device_max: 100.0
+  # physical_velocity_device_min: -130.0
+  # physical_velocity_device_max: 130.0
   can_device_type: 33
   can_card_index: 0
   can_channel_index: 0
@@ -26,4 +42,3 @@ hardware:
   can_data_tseg1: 7
   can_data_tseg2: 2
   can_data_smp: 0
-

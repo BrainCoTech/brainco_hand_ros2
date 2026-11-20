@@ -1,6 +1,24 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Changelog for package brainco_hand_driver
+Changelog for package revo2_driver
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Forthcoming
+-----------
+
+* Add per-joint integral velocity control with configurable gain and contribution
+  limit, conditional anti-windup and lifecycle/timeout resets (2026-11-18).
+  Integral gain defaults to zero to preserve existing PD behavior.
+
+* Add B-compatible joint trajectory controllers and selectable startup modes,
+  including independent mode overrides for dual hands (2026-11-13).
+
+* Add explicit SDK file logging and manual touch enable/calibration ROS services
+  with raw transport status, mask validation and serialized device access (2026-11-13).
+
+* Upgrade the vendored Stark SDK and downloader to v2.0.9 (2026-11-12).
+* Decode device information with the matching v2.0.9 public ABI instead of the
+  v1.5.1 legacy layout workaround.
+* Validate SDK downloads and platform caches, and install the SDK license.
 
 1.2.0 (2026-01-29)
 ------------------
@@ -27,7 +45,7 @@ Changelog for package brainco_hand_driver
 1.0.0 (2025-11-06)
 ------------------
 
-* Initial release of brainco_hand_driver package
+* Initial release of revo2_driver package
 * Modbus hardware interface implementation for Revo2 dexterous hands
 * Support for both left and right hand configurations
 * Integrated ros2_control with trajectory controllers

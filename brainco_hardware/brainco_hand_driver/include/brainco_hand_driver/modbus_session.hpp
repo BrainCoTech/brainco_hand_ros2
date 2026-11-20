@@ -14,13 +14,13 @@
 
 #pragma once
 
-#include "brainco_hand_driver/transport_session_base.hpp"
+#include "revo2_driver/transport_session_base.hpp"
 #include "stark-sdk.h"
 
 #include <memory>
 #include <optional>
 
-namespace brainco_hand_driver
+namespace revo2_driver
 {
 
 // Modbus transport session implementation
@@ -41,4 +41,4 @@ private:
   std::optional<BraincoHandApi::ConnectionInfo> resolved_connection_{};
 };
 
-}  // namespace brainco_hand_driver
+}  // namespace revo2_driver

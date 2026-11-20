@@ -12,20 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "brainco_hand_driver/canfd_session.hpp"
+#include "revo2_driver/canfd_session.hpp"
 
 #include <algorithm>
 #include <cstdint>
 
-#include "brainco_hand_driver/logger_macros.hpp"
+#include "revo2_driver/logger_macros.hpp"
 
-namespace brainco_hand_driver
+namespace revo2_driver
 {
 
 std::atomic<CanfdSession *> CanfdSession::active_instance_{nullptr};
 
+namespace
+{
+constexpr uint32_t kDefaultCanfdArbitrationBaudrate{1000000};
+constexpr uint32_t kDefaultCanfdDataBaudrate{5000000};
+}  // namespace
+
+void CanfdSession::CanfdHandleDeleter::operator()(DeviceHandler * handle) const
+{
+  if (handle)
+  {
+    ::close_device_handler(handle, static_cast<uint8_t>(STARK_PROTOCOL_TYPE_CAN_FD));
+  }
+}
+
 CanfdSession::CanfdSession(BraincoHandApi::DriverConfig & config)
-: SessionBase(config), handle_(nullptr)
+: SessionBase(config)
 {
 }
 
@@ -90,10 +104,12 @@ bool CanfdSession::open()
   set_can_rx_callback(&CanfdSession::rx_callback);
   callbacks_registered_ = true;
 
-  DeviceHandler * raw = ::init_device_handler(STARK_PROTOCOL_TYPE_CAN_FD, canfd.master_id);
+  DeviceHandler * raw = ::init_device_handler_can(
+    STARK_PROTOCOL_TYPE_CAN_FD, canfd.master_id, kDefaultCanfdArbitrationBaudrate,
+    kDefaultCanfdDataBaudrate);
   if (!raw)
   {
-    BRAINCO_HAND_LOG_ERROR("init_device_handler failed");
+    BRAINCO_HAND_LOG_ERROR("init_device_handler_can failed");
     close();
     return false;
   }
@@ -151,8 +167,8 @@ int32_t CanfdSession::tx_callback(
 }
 
 int32_t CanfdSession::rx_callback(
-  uint8_t slave_id, uint32_t expected_can_id, uint8_t expected_frames,
-  uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
+  uint8_t slave_id, uint32_t expected_can_id, uint8_t expected_frames, uint32_t * can_id_out,
+  uint8_t * data_out, uintptr_t * data_len_out)
 {
   auto * session = active_instance_.load(std::memory_order_acquire);
   if (!session)
@@ -204,10 +220,11 @@ int32_t CanfdSession::handle_tx(
 }
 
 int32_t CanfdSession::handle_rx(
-  uint8_t slave_id, uint32_t expected_can_id, uint8_t expected_frames,
-  uint32_t * can_id_out, uint8_t * data_out, uintptr_t * data_len_out)
+  uint8_t slave_id, uint32_t expected_can_id, uint8_t expected_frames, uint32_t * can_id_out,
+  uint8_t * data_out, uintptr_t * data_len_out)
 {
   (void)slave_id;
+  (void)expected_frames;
   if (!can_id_out || !data_out || !data_len_out)
   {
     return -1;
@@ -228,25 +245,26 @@ int32_t CanfdSession::handle_rx(
     return -1;
   }
 
-  (void)expected_frames;  // CAN FD responses fit in one frame.
-  const auto end = rx_buffer_.begin() + std::min<std::size_t>(received, rx_buffer_.size());
-  const auto match = std::find_if(rx_buffer_.begin(), end, [expected_can_id](const auto & frame) {
-    return frame.hdr.id == expected_can_id;
-  });
-  if (match == end)
+  for (uint32_t message_index = 0; message_index < static_cast<uint32_t>(received); ++message_index)
   {
-    return -1;
+    const auto & frame = rx_buffer_[message_index];
+    if (expected_can_id != 0 && frame.hdr.id != expected_can_id)
+    {
+      continue;
+    }
+
+    const auto payload_len = static_cast<uint8_t>(
+      std::min<uintptr_t>(static_cast<uintptr_t>(frame.hdr.len), static_cast<uintptr_t>(64)));
+    *can_id_out = frame.hdr.id;
+    *data_len_out = payload_len;
+    for (uint8_t index = 0; index < payload_len; ++index)
+    {
+      data_out[index] = frame.dat[index];
+    }
+    return 0;
   }
-  const auto & frame = *match;
-  const auto payload_len = static_cast<uint8_t>(
-    std::min<uintptr_t>(static_cast<uintptr_t>(frame.hdr.len), static_cast<uintptr_t>(64)));
-  *can_id_out = frame.hdr.id;
-  *data_len_out = payload_len;
-  for (uint8_t index = 0; index < payload_len; ++index)
-  {
-    data_out[index] = frame.dat[index];
-  }
-  return 0;
+
+  return -1;
 }
 
-}  // namespace brainco_hand_driver
+}  // namespace revo2_driver

@@ -4,497 +4,453 @@
 
 ## Overview
 
-The BrainCo Hand Driver package provides a ROS2 hardware interface for BrainCo Revo2 dexterous hands using Modbus/CAN FD communication protocols. This package implements a ros2_control hardware interface that enables real-time control and monitoring of 6 finger joints through serial port or CAN FD.
+`revo2_driver` is a ROS 2 `ros2_control` hardware interface package for BrainCo Revo2 dexterous hands.
+It supports:
 
-**Communication Protocol Support:**
-- **Modbus** (Default): Serial communication with good compatibility and simple deployment
-- **CAN FD**: High-speed bus communication, supports controlling multiple hands simultaneously, requires ZLG CAN FD hardware
+- single-hand and dual-hand launches
+- Modbus serial communication
+- optional CAN FD communication
+- position and velocity command interfaces
+- joint state feedback and fingertip tactile feedback
 
-## Features
+Each hand exposes 6 controllable joints:
 
-- **Communication Protocol**: Support for Modbus and CAN FD dual protocols
-- **ros2_control Integration**: Full ros2_control hardware interface implementation
-- **Dual Hand Support**: Support for both left and right hand configurations, as well as simultaneous dual-hand control
-- **Real-time Control**: High-frequency control loop for precise finger manipulation
-- **State Feedback**: Position and velocity feedback from all joints
-- **Trajectory Control**: Joint trajectory controller support for smooth motion execution
-- **Auto Detection**: Support for Modbus automatic port and slave ID detection (supports both single and dual hand modes)
+- `thumb_proximal_joint`
+- `thumb_metacarpal_joint`
+- `index_proximal_joint`
+- `middle_proximal_joint`
+- `ring_proximal_joint`
+- `pinky_proximal_joint`
+
+Tactile state interfaces are exported on 5 fingertip joints:
+
+- `tactile_normal_force`
+- `tactile_tangential_force`
+- `tactile_tangential_direction`
+- `tactile_self_proximity`
+- `tactile_status`
+
+## Current Package Behavior
+
+The current implementation is centered around `ros2_control` forward controllers, not a trajectory controller.
+
+- `revo2_joint_state` is loaded and activated by default
+- `joint_forward_pos_controller` is loaded and activated by default
+- `joint_forward_vel_controller` is loaded but kept inactive by default
+- default controller manager update rate is `500 Hz`
+- default launch namespace is `revo2_left` or `revo2_right`
+
+If you are updating older integration code, note these important differences:
+
+- default `description_package` is `revoarm_description`
+- the package still relies on `revo2_description` mesh assets through `revoarm_description`
+- the README examples that use `joint_trajectory_controller` are outdated and should not be used for this package
 
 ## Environment
 
 - Ubuntu 22.04
-- ROS 2 (Humble)
-- Python 3.8+
+- ROS 2 Humble
+- `ros2_control`
+- `controller_manager`
+- `joint_state_broadcaster`
+- `forward_command_controller`
+- `robot_state_publisher`
+- `xacro`
+- `revoarm_description`
+- `revo2_description`
 
-### Modbus Mode (Default)
-- Modbus serial device (e.g., /dev/ttyUSB0)
+## Build
 
-### CAN FD Mode (Optional)
-- ZLG USB-CAN FD device (e.g., USBCANFD-200U)
-- ZLG CAN FD driver library (included with package)
-- CAN FD bus connection
-
-## Installation and Setup
-
-### BrainCo Stark SDK
-
-SDK headers are tracked in `vendor/`; shared libraries are downloaded locally and ignored by Git. Before the first build or after updating the SDK pin, run the following command on the target machine to install the pinned SDK version (v2.0.9). On Linux, the script selects x86_64 or ARM64 and checks the cached library architecture. Downloading requires network access, `curl` or `wget`, `unzip`, and `file`.
-
-On Linux, SDK v2.0.9 no longer waits for each Modbus serial write to drain. Set `STARK_MODBUS_DRAIN_ON_FLUSH=1` before starting the driver to restore that behavior if needed.
+Build from your ROS 2 workspace root:
 
 ```bash
-cd brainco_hardware/brainco_hand_driver
-./scripts/download_sdk.sh
-```
+cd revoarm_hardware/Revoarm_ws
+source /opt/ros/humble/setup.bash
 
-### Build the Workspace
-
-**Recommended: Using Build Script**
-
-```bash
-cd ~/brainco_ws
-
-# Default build (Modbus only)
-./build.sh
+# Modbus only
+colcon build --packages-up-to revo2_driver --symlink-install
 
 # Enable CAN FD support
-./build.sh --canfd
+colcon build --packages-up-to revo2_driver --symlink-install --cmake-args -DENABLE_CANFD=ON
 
-# Enable EtherCAT support
-./build.sh --ethercat
-
-# Release mode, enable all features
-./build.sh --release --canfd --ethercat
-```
-
-**Using colcon Commands**
-
-```bash
-cd ~/brainco_ws
-
-# Default build (CAN FD disabled)
-colcon build --packages-up-to brainco_hand_driver --symlink-install 
-
-# Enable CAN FD support
-colcon build --packages-up-to brainco_hand_driver --symlink-install --cmake-args -DENABLE_CANFD=ON
-
-# Source the workspace
 source install/setup.bash
 ```
 
-**Build Options:**
-- Default: `ENABLE_CANFD=OFF`, Modbus only
-- Enable CAN FD: Use `-DENABLE_CANFD=ON`
+### BrainCo Stark SDK
 
-**Note:** `brainco_hand_driver` depends on `revo2_description` package.
-
-### Verify Installation
+The Stark SDK is vendored under `vendor/` and can be used directly. The current vendored version is
+`v2.0.9`, and `scripts/download_sdk.sh` is pinned to download the same SDK version.
+If you need to refresh it:
 
 ```bash
-# Check if package is available
-ros2 pkg list | grep brainco_hand_driver
-
-# Check serial port permissions
-ls -l /dev/ttyUSB*
-# If permissions are insufficient, add user to dialout group:
-sudo usermod -a -G dialout $USER
-# Then log out and log back in
+cd revoarm_hardware/Revoarm_ws/src/brainco_drivers/revo2_driver
+./scripts/download_sdk.sh
 ```
 
-## Hardware Connection
+The script validates the platform, library architecture, header and SDK license before
+installing the release. Keep the SDK header and shared library from the same release,
+then rebuild `revo2_driver` and source the updated workspace. The SDK license is
+included in `vendor/LICENSE` and installed under `share/revo2_driver/licenses/`.
 
-### Modbus Serial Port Setup
+### CAN FD Build Note
 
-Before using the driver, ensure your Modbus serial port setup is correct:
+CAN FD support is compiled out unless you build with:
 
 ```bash
-# Check serial port devices
-ls -l /dev/ttyUSB*
+--cmake-args -DENABLE_CANFD=ON
+```
 
-# Check serial port permissions
+If you launch with `protocol:=canfd` without rebuilding with `ENABLE_CANFD=ON`, hardware initialization will fail.
+
+## Configuration Files
+
+Main configuration files in this package:
+
+| File | Purpose |
+|---|---|
+| `config/protocol_modbus_left.yaml` | Left-hand Modbus parameters |
+| `config/protocol_modbus_right.yaml` | Right-hand Modbus parameters |
+| `config/protocol_canfd_left.yaml` | Left-hand CAN FD parameters |
+| `config/protocol_canfd_right.yaml` | Right-hand CAN FD parameters |
+| `config/revo2_initial_positions.yaml` | Initial joint positions |
+| `config/revo2_controllers.yaml` | Controller manager and forward controller template |
+
+### Modbus Parameters
+
+Important Modbus fields:
+
+- `slave_id`: left hand defaults to `126`, right hand defaults to `127`
+- `port`: serial device path such as `/dev/ttyUSB0`
+- `baudrate`: default `460800`
+- `auto_detect`: scan serial ports and detect a Revo2 device automatically
+- `auto_detect_quick`: quick scan mode
+- `auto_detect_port`: optional port prefix hint such as `/dev/ttyUSB`
+
+When `auto_detect: true`:
+
+- `port` and `baudrate` are ignored
+- the detected device `slave_id` is used at runtime
+- the configured `slave_id` is treated as a hint for left/right hand matching
+
+### Scaling Parameters
+
+The hardware interface converts between ROS-side radians and device-side raw values through:
+
+- `position_command_scale`
+- `position_state_scale`
+- `velocity_state_scale`
+- `velocity_command_scale`
+- `velocity_device_min`
+- `velocity_device_max`
+- `position_device_min`
+- `position_device_max`
+- `velocity_percentage`
+
+`joint_forward_vel_controller` commands use ROS joint velocity units (`rad/s`). The hardware
+interface multiplies them by `velocity_command_scale` before calling the SDK speed API.
+In normalized mode, the standard Revo2 scale is `572.9577951308232`, so `1.0 rad/s` is written
+as about `573` SDK normalized speed units before clamping to `[-1000, 1000]`.
+
+`velocity_percentage` is clamped to the valid runtime range `0` to `100`.
+
+When `finger_unit_mode: physical` is selected, the base scaling parameters are still used unless
+physical-mode overrides are configured. The optional override names are:
+
+- `physical_position_command_scale`
+- `physical_position_state_scale`
+- `physical_velocity_state_scale`
+- `physical_velocity_command_scale`
+- `physical_position_device_min`
+- `physical_position_device_max`
+- `physical_velocity_device_min`
+- `physical_velocity_device_max`
+
+If only `physical_position_state_scale` or `physical_velocity_state_scale` is provided, the matching
+command scale is derived as its inverse. A practical first calibration for degree-based physical
+values is `57.29577951308232` for command scale and `0.017453292519943295` for state scale, then tune
+`physical_position_device_max` against the real hand's observed range. For speed-mode teleoperation,
+physical mode should also clamp SDK speed commands to the hand's degree-per-second range; the
+right-hand Modbus profile currently uses `-150` to `150` deg/s.
+
+### CAN FD Parameters
+
+Important CAN FD fields:
+
+- `can_device_type`
+- `can_card_index`
+- `can_channel_index`
+- `can_clock_hz`
+- `can_rx_wait_time`
+- `can_rx_buffer_size`
+- `can_master_id`
+- arbitration timing fields
+- data timing fields
+
+For dual-hand CAN FD setups, do not point both hands at the same physical CAN device/channel unless your deployment is designed for that explicitly. In practice, use distinct channel or device settings per hand.
+
+## Launch
+
+### Single Hand
+
+Right hand, Modbus:
+
+```bash
+ros2 launch revo2_driver revo2_system.launch.py hand_side:=right
+```
+
+Left hand, Modbus:
+
+```bash
+ros2 launch revo2_driver revo2_system.launch.py hand_side:=left
+```
+
+Right hand, CAN FD:
+
+```bash
+ros2 launch revo2_driver revo2_system.launch.py hand_side:=right protocol:=canfd
+```
+
+Left hand, CAN FD:
+
+```bash
+ros2 launch revo2_driver revo2_system.launch.py hand_side:=left protocol:=canfd
+```
+
+### Dual Hand
+
+Both hands with default Modbus configs:
+
+```bash
+ros2 launch revo2_driver dual_revo2_system.launch.py
+```
+
+Left Modbus + right CAN FD:
+
+```bash
+ros2 launch revo2_driver dual_revo2_system.launch.py \
+  left_protocol:=modbus \
+  right_protocol:=canfd
+```
+
+Override protocol config files:
+
+```bash
+ros2 launch revo2_driver dual_revo2_system.launch.py \
+  left_protocol_config_file:=protocol_modbus_left.yaml \
+  right_protocol_config_file:=protocol_modbus_right.yaml
+```
+
+Relative protocol config names are resolved from `revo2_driver/config/`.
+
+### Simulation
+
+Use mock hardware instead of real hardware:
+
+```bash
+ros2 launch revo2_driver revo2_system.launch.py hand_side:=right if_sim:=true
+```
+
+## Launch Arguments
+
+### `revo2_system.launch.py`
+
+| Argument | Default | Description |
+|---|---|---|
+| `description_package` | `revoarm_description` | Package that provides `urdf/system/revo2.single.system.xacro` |
+| `hand_side` | `right` | `left` or `right` |
+| `protocol` | `modbus` | `modbus` or `canfd` |
+| `protocol_config_file` | `""` | Override protocol YAML |
+| `initial_positions_file` | `""` | Override initial positions YAML |
+| `controllers_file` | `""` | Override controller template YAML |
+| `use_namespace` | `true` | Use `revo2_left` or `revo2_right` namespace |
+| `if_sim` | `false` | Use mock hardware |
+| `launch_rsp` | `true` | Launch `robot_state_publisher` |
+
+### `dual_revo2_system.launch.py`
+
+| Argument | Default | Description |
+|---|---|---|
+| `description_package` | `revoarm_description` | Description package |
+| `left_protocol` | `modbus` | Left-hand protocol |
+| `right_protocol` | `modbus` | Right-hand protocol |
+| `left_protocol_config_file` | `""` | Left protocol YAML override |
+| `right_protocol_config_file` | `""` | Right protocol YAML override |
+| `initial_positions_file` | `""` | Shared initial positions YAML override |
+| `controllers_file` | `""` | Controller template override |
+| `use_namespace` | `true` | Strongly recommended for dual-hand launch |
+| `if_sim` | `false` | Use mock hardware |
+| `launch_rsp` | `true` | Launch per-hand `robot_state_publisher` |
+
+## Runtime Interfaces
+
+### Controllers
+
+For a right-hand launch with default namespace:
+
+- controller manager: `/revo2_right/controller_manager`
+- active controller: `/revo2_right/joint_forward_pos_controller`
+- inactive controller: `/revo2_right/joint_forward_vel_controller`
+- joint state broadcaster: `/revo2_right/revo2_joint_state`
+
+For a left-hand launch with default namespace, replace `revo2_right` with `revo2_left`.
+
+### Position Command Topic
+
+The default active controller accepts `std_msgs/msg/Float64MultiArray`:
+
+```bash
+ros2 topic pub --once /revo2_right/joint_forward_pos_controller/commands \
+  std_msgs/msg/Float64MultiArray \
+  "{data: [0.30, 0.10, 0.60, 0.60, 0.60, 0.60]}"
+```
+
+Joint order:
+
+1. `thumb_proximal_joint`
+2. `thumb_metacarpal_joint`
+3. `index_proximal_joint`
+4. `middle_proximal_joint`
+5. `ring_proximal_joint`
+6. `pinky_proximal_joint`
+
+### Velocity Command Topic
+
+The velocity forward controller is loaded inactive. Switch controllers first:
+
+```bash
+ros2 control switch_controllers \
+  --controller-manager /revo2_right/controller_manager \
+  --deactivate joint_forward_pos_controller \
+  --activate joint_forward_vel_controller
+```
+
+Then publish velocity commands:
+
+```bash
+ros2 topic pub --once /revo2_right/joint_forward_vel_controller/commands \
+  std_msgs/msg/Float64MultiArray \
+  "{data: [0.17, 0.17, 0.35, 0.35, 0.35, 0.35]}"
+```
+
+### State Topics
+
+Joint states:
+
+```bash
+ros2 topic echo /revo2_right/revo2_joint_state/joint_states
+```
+
+Dynamic joint states, including tactile interfaces:
+
+```bash
+ros2 topic echo /revo2_right/revo2_joint_state/dynamic_joint_states
+```
+
+Tactile data is reported for:
+
+- `thumb_proximal_joint`
+- `index_proximal_joint`
+- `middle_proximal_joint`
+- `ring_proximal_joint`
+- `pinky_proximal_joint`
+
+`thumb_metacarpal_joint` does not export tactile interfaces.
+
+## Troubleshooting
+
+### Serial Port Permission
+
+```bash
+ls -l /dev/ttyUSB*
 groups | grep dialout
-
-# If no permission, add user to dialout group
 sudo usermod -a -G dialout $USER
-# Log out and log back in to take effect
-
-# Test serial port connection (optional)
-sudo apt install minicom
-sudo minicom -D /dev/ttyUSB0
 ```
 
-### Modbus Auto Detection
+After adding the group, re-login before retrying.
 
-The driver supports automatic detection of serial ports and slave IDs, useful for:
-- Scenarios where serial port device paths are not fixed
-- Dual hand configurations, automatically identifying left/right hand devices
-- Device hot-plugging where port numbers may change
+### Modbus Auto Detect for Dual Hand
 
-**Enable Auto Detection:**
+Recommended defaults:
 
-Edit the configuration file `config/protocol_modbus_right.yaml`:
+- left hand: `slave_id: 126`
+- right hand: `slave_id: 127`
+
+If both hands are connected through USB serial adapters, you can either:
+
+- keep manual `port` settings
+- enable `auto_detect: true` and keep different `slave_id` hints
+- narrow each side with `auto_detect_port`
+
+### Common Checks
+
+```bash
+ros2 control list_controllers -c /revo2_right/controller_manager
+ros2 control list_hardware_components
+ros2 control list_hardware_interfaces
+ros2 topic list | grep revo2_right
+```
+
+If `protocol:=canfd` fails at startup, verify both:
+
+- the package was built with `-DENABLE_CANFD=ON`
+- the configured CAN device and channel are valid for the current machine
+
+## PID integral term
+
+The six joints have independent integral state. Existing parameter names remain
+under `pd_velocity`:
 
 ```yaml
-hardware:
-  protocol: modbus
-  slave_id: 127  # Right hand typically uses 127, left hand uses 126
-  auto_detect: true
-  auto_detect_quick: true  # Quick detection mode (recommended)
-  auto_detect_port: ""  # Port hint, leave empty to detect all ports, or specify like "/dev/ttyUSB"
-  # When auto_detect is true, the following parameters are ignored
-  port: /dev/ttyUSB0
-  baudrate: 460800
+pd_velocity:
+  velocity_kp: 6.7
+  velocity_ki: 0.0
+  velocity_kd: 0.8
+  integral_max: 0.2
 ```
 
-**Parameters:**
+`velocity_ki` (1/s²) defaults to zero to preserve the existing PD behavior.
+Each cycle applies `I = clamp(I + Ki * position_error * dt, -integral_max, integral_max)`.
+`integral_max` bounds the I contribution in rad/s; zero also disables integration.
+I is added after the existing joint PD scaling and before feedforward and
+four-finger extension scaling. The latter can amplify its final contribution;
+the total output still passes through the existing velocity limits.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `auto_detect` | bool | `false` | Whether to enable auto detection |
-| `auto_detect_quick` | bool | `true` | Quick detection mode. `false` will detect all possible slave_ids (1-247), slower |
-| `auto_detect_port` | string | `""` | Port hint. Leave empty to detect all ports, or specify like `"/dev/ttyUSB"` to only detect USB ports |
+Integral state is cleared in the error deadband, on error reversal, for outward
+integral at configured position boundaries, on target timeout, on controller
+deactivation/reactivation, and on invalid position feedback. Conditional
+integration prevents further windup into controller velocity, thumb brake and
+per-cycle slew saturation. Errors inside the deadband are not integrated.
 
-**Dual Hand Configuration:**
+These parameters are read during configuration: reload the controller or restart
+the driver after changing YAML; live `ros2 param set` does not update the control
+calculation. Start with a small Ki and unloaded, small-angle targets.
+Anti-windup only covers limits known to the controller, not SDK/firmware saturation
+or blocked motion. Match the controller velocity/position limits to the hardware.
+This change does not add hardware position guards to pure speed mode or change
+the existing stale-position behavior when switching back to position control.
 
-In dual hand configuration, each hardware instance performs auto detection independently, distinguishing left and right hand devices by `slave_id`:
+## SDK v2.0.9 services
 
-- Left hand configuration (`config/protocol_modbus_left.yaml`): `slave_id: 126`
-- Right hand configuration (`config/protocol_modbus_right.yaml`): `slave_id: 127`
+Set `sdk_file_logging:=true/false` at launch (empty uses the protocol YAML).
+The driver exposes `touch/enable` and `touch/calibrate` in its ROS namespace,
+using `revo2_driver/srv/TouchSensorCommand`. Success means transport success,
+not sensor readiness or completed calibration. The request selects sensors with
+`sensor_mask` (all five fingers: 31). Calibrate only with unloaded fingertips.
 
-## Quick Start
+## Trajectory control
 
-### Launch Right Hand System
+Startup always activates `joint_forward_pos_controller` and the joint state
+broadcaster. Velocity, PID and trajectory controllers are loaded inactive.
+To use the B-compatible `left_revo2_hand_controller` or
+`right_revo2_hand_controller` and its `FollowJointTrajectory` action, switch
+controllers after startup. For the right hand:
 
 ```bash
-# Modbus mode (default, uses port and slave ID from protocol configuration file)
-ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right
-
-# CAN FD mode (requires ZLG USB-CAN FD device)
-ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right protocol:=canfd
+ros2 control switch_controllers -c /revo2_right/controller_manager \
+  --deactivate joint_forward_pos_controller \
+  --activate right_revo2_hand_controller --strict
 ```
 
-### Launch Left Hand System
-
-```bash
-# Modbus mode (default, uses port and slave ID from protocol configuration file)
-ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=left
-
-# CAN FD mode (requires ZLG USB-CAN FD device)
-ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=left protocol:=canfd
-```
-
-### Launch Dual Hand System
-
-```bash
-# Use default configuration (auto detection) Modbus mode
-ros2 launch brainco_hand_driver dual_revo2_system.launch.py
-
-# Custom protocol configuration files
-ros2 launch brainco_hand_driver dual_revo2_system.launch.py \
-    left_protocol_config_file:=/path/to/protocol_modbus_left.yaml \
-    right_protocol_config_file:=/path/to/protocol_modbus_right.yaml
-
-# If auto detection is enabled (`auto_detect: true`), the driver will automatically scan and find left/right hand devices. Ensure left and right hands use different `slave_id` (left hand 126, right hand 127).
-
-# CAN FD mode
-ros2 launch brainco_moveit_config dual_revo2_real_moveit.launch.py protocol:=canfd
-```
-
-### Launch Parameters
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `hand_type` | `right` | Hand type: `left` or `right` |
-| `protocol` | `modbus` | Communication protocol: `modbus` or `canfd` |
-| `protocol_config_file` | `""` | Protocol configuration file (YAML), leave empty to use default configuration |
-
-When using Modbus mode, the `port` and `slave_id` in protocol configuration file need to be modified according to actual hardware connection.
-
-## Control Interface
-
-### Topic Interface
-
-Right hand trajectory control example:
-
-```bash
-ros2 topic pub --once /right_revo2_hand_controller/joint_trajectory \
-  trajectory_msgs/msg/JointTrajectory \
-  '{
-    joint_names: [
-      "right_thumb_proximal_joint",
-      "right_thumb_metacarpal_joint",
-      "right_index_proximal_joint",
-      "right_middle_proximal_joint",
-      "right_ring_proximal_joint",
-      "right_pinky_proximal_joint"
-    ],
-    points: [{
-      positions: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
-      time_from_start: {sec: 2}
-    }]
-  }'
-```
-
-Left hand trajectory control example:
-
-```bash
-ros2 topic pub --once /left_revo2_hand_controller/joint_trajectory \
-  trajectory_msgs/msg/JointTrajectory \
-  '{
-    joint_names: [
-      "left_thumb_proximal_joint",
-      "left_thumb_metacarpal_joint",
-      "left_index_proximal_joint",
-      "left_middle_proximal_joint",
-      "left_ring_proximal_joint",
-      "left_pinky_proximal_joint"
-    ],
-    points: [{
-      positions: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
-      time_from_start: {sec: 2}
-    }]
-  }'
-```
-
-### Using Action Interface
-
-Right hand Action control example:
-
-```bash
-ros2 action send_goal /right_revo2_hand_controller/follow_joint_trajectory \
-  control_msgs/action/FollowJointTrajectory \
-  '{
-    trajectory: {
-      joint_names: [
-        "right_thumb_proximal_joint",
-        "right_thumb_metacarpal_joint",
-        "right_index_proximal_joint",
-        "right_middle_proximal_joint",
-        "right_ring_proximal_joint",
-        "right_pinky_proximal_joint"
-      ],
-      points: [
-        {
-          positions: [0.5, 0.0, 0.0, 0.0, 0.0, 0.0],
-          time_from_start: {sec: 1}
-        },
-        {
-          positions: [0.5, 0.0, 1.4, 0.0, 0.0, 0.0],
-          time_from_start: {sec: 2}
-        },
-        {
-          positions: [0.5, 0.0, 1.4, 1.4, 0.0, 0.0],
-          time_from_start: {sec: 3}
-        },
-        {
-          positions: [0.5, 0.0, 1.4, 1.4, 1.4, 0.0],
-          time_from_start: {sec: 4}
-        },
-        {
-          positions: [0.5, 0.0, 1.4, 1.4, 1.4, 1.4],
-          time_from_start: {sec: 5}
-        }
-      ]
-    }
-  }'
-```
-
-Left hand Action control example:
-
-```bash
-ros2 action send_goal /left_revo2_hand_controller/follow_joint_trajectory \
-  control_msgs/action/FollowJointTrajectory \
-  '{
-    trajectory: {
-      joint_names: [
-        "left_thumb_proximal_joint",
-        "left_thumb_metacarpal_joint",
-        "left_index_proximal_joint",
-        "left_middle_proximal_joint",
-        "left_ring_proximal_joint",
-        "left_pinky_proximal_joint"
-      ],
-      points: [
-        {
-          positions: [0.5, 0.0, 0.0, 0.0, 0.0, 0.0],
-          time_from_start: {sec: 1}
-        },
-        {
-          positions: [0.5, 0.0, 1.4, 0.0, 0.0, 0.0],
-          time_from_start: {sec: 2}
-        },
-        {
-          positions: [0.5, 0.0, 1.4, 1.4, 0.0, 0.0],
-          time_from_start: {sec: 3}
-        },
-        {
-          positions: [0.5, 0.0, 1.4, 1.4, 1.4, 0.0],
-          time_from_start: {sec: 4}
-        },
-        {
-          positions: [0.5, 0.0, 1.4, 1.4, 1.4, 1.4],
-          time_from_start: {sec: 5}
-        }
-      ]
-    }
-  }'
-```
-
-### Home Position (Zero Position)
-
-```bash
-ros2 topic pub --once /right_revo2_hand_controller/joint_trajectory \
-  trajectory_msgs/msg/JointTrajectory \
-  '{
-    joint_names: [
-      "right_thumb_proximal_joint",
-      "right_thumb_metacarpal_joint",
-      "right_index_proximal_joint",
-      "right_middle_proximal_joint",
-      "right_ring_proximal_joint",
-      "right_pinky_proximal_joint"
-    ],
-    points: [{
-      positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-      time_from_start: {sec: 1}
-    }]
-  }'
-
-# Left hand
-ros2 topic pub --once /left_revo2_hand_controller/joint_trajectory \
-  trajectory_msgs/msg/JointTrajectory \
-  '{
-    joint_names: [
-      "left_thumb_proximal_joint",
-      "left_thumb_metacarpal_joint",
-      "left_index_proximal_joint",
-      "left_middle_proximal_joint",
-      "left_ring_proximal_joint",
-      "left_pinky_proximal_joint"
-    ],
-    points: [{
-      positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-      time_from_start: {sec: 1}
-    }]
-  }'
-```
-
-## Monitoring and Debugging
-
-### Check System Status
-
-```bash
-# List all running nodes
-ros2 node list
-
-# List all controllers
-ros2 control list_controllers
-
-# Check hardware components
-ros2 control list_hardware_components
-
-# Check hardware interfaces
-ros2 control list_hardware_interfaces
-
-# Monitor joint states
-ros2 topic echo /joint_states
-```
-
-### Expected Output
-
-**Core Node List (Right Hand Configuration):**
-```
-/controller_manager
-/joint_state_broadcaster
-/right_revo2_hand_controller
-/robot_state_publisher
-```
-
-**Controller Status (Right Hand Configuration):**
-```
-joint_state_broadcaster      joint_state_broadcaster/JointStateBroadcaster          active
-right_revo2_hand_controller   joint_trajectory_controller/JointTrajectoryController  active
-```
-
-**Hardware Components (Right Hand Configuration):**
-```
-Hardware Component 1
-	name: Revo2RightSystem
-	type: system
-	plugin name: brainco_hand_driver/BraincoHandHardware
-	state: id=3 label=active
-	command interfaces
-		right_thumb_proximal_joint/position [available] [claimed]
-		right_thumb_metacarpal_joint/position [available] [claimed]
-		right_index_proximal_joint/position [available] [claimed]
-		right_middle_proximal_joint/position [available] [claimed]
-		right_ring_proximal_joint/position [available] [claimed]
-		right_pinky_proximal_joint/position [available] [claimed]
-```
-
-**Core Topic List (Right Hand Configuration):**
-```
-/joint_states
-/right_revo2_hand_controller/joint_trajectory
-/robot_description
-/tf
-/tf_static
-```
-
-**Core Action List (Right Hand Configuration):**
-```
-/right_revo2_hand_controller/follow_joint_trajectory
-```
-
-## Joint Mapping
-
-### Right Hand Joints
-
-| Joint Name | Description | Angle Range (rad) | Max Angle (deg) |
-|------------|-------------|-------------------|-----------------|
-| `right_thumb_proximal_joint` | Thumb proximal joint | 0 ~ 1.04720 | 60 |
-| `right_thumb_metacarpal_joint` | Thumb metacarpal joint | 0 ~ 1.55334 | 89 |
-| `right_index_proximal_joint` | Index finger proximal joint | 0 ~ 1.41 | 81 |
-| `right_middle_proximal_joint` | Middle finger proximal joint | 0 ~ 1.41 | 81 |
-| `right_ring_proximal_joint` | Ring finger proximal joint | 0 ~ 1.41 | 81 |
-| `right_pinky_proximal_joint` | Pinky finger proximal joint | 0 ~ 1.41 | 81 |
-
-**Note:** Left hand joint names replace `right_` with `left_`, with the same angle ranges.
-
-## Package Structure
-
-```
-brainco_hand_driver/
-├── launch/                                      # Launch files
-│   ├── revo2_system.launch.py                    # Single-hand robot launch file
-│   └── dual_revo2_system.launch.py               # Dual-hand robot launch file
-├── config/                                      # Configuration files
-│   ├── protocol_*.yaml                          # Protocol configuration files (Modbus/CAN FD)
-│   ├── xxx.urdf.xacro                           # URDF XACRO files
-│   ├── xxx.ros2_control.xacro                   # ros2_control configuration
-│   ├── xxx_controllers.yaml                     # Controller configuration
-│   ├── xxx_initial_positions.yaml               # Initial positions configuration
-│   └── ...                                      # Other configuration files
-├── include/                                     # Header files
-│   └── brainco_hand_driver/                     # Driver header files
-│       ├── brainco_hand_hardware.hpp            # Hardware interface header
-│       └── logger_macros.hpp                    # Logger macros
-├── src/                                         # Source files
-│   └── brainco_hand_hardware.cpp                # Hardware interface implementation
-├── scripts/                                     # Utility scripts
-│   └── download_sdk.sh                          # SDK download script
-├── vendor/                                      # BrainCo Stark SDK
-│   └── dist/                                    # SDK distribution files
-├── CMakeLists.txt                               # Build configuration
-├── package.xml                                  # Package description
-├── brainco_hand_driver_plugins.xml              # Plugin description
-└── README.md                                    # English documentation
-```
-
-## License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-If you have any questions or suggestions, please contact the development team.
+The right-hand action is
+`/revo2_right/right_revo2_hand_controller/follow_joint_trajectory`.
+Goals must name all six joints and use increasing `time_from_start` values.
