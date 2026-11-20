@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- System-layer entry point for the standalone revo2 hand (no arm).
+     Loaded directly by the revo2 launch file.
+
+     Parameters:
+       hand_side               "left" | "right"
+       initial_positions_file  Path to initial joint positions YAML
+       protocol_config_file    Path to protocol config YAML
+       read_touch_status       Enable synchronous SDK touch polling
+       touch_read_hz           SDK touch polling rate
+       if_sim                  Use mock hardware when true
+-->
+<robot name="revo2_single" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="hand_side" default="right" />
+  <xacro:arg name="initial_positions_file" default="" />
+  <xacro:arg name="protocol_config_file" default="" />
+  <xacro:arg name="read_touch_status" default="true" />
+  <xacro:arg name="touch_read_hz" default="20.0" />
+  <xacro:arg name="if_sim" default="false" />
+
+  <xacro:include filename="$(find revo2_description)/urdf/revo2_hand.xacro" />
+  <xacro:include filename="$(find revo2_driver)/config/revo2.ros2_control.xacro" />
+
+  <link name="world" />
+
+  <xacro:property name="hand_prefix" value="$(arg hand_side)" />
+
+  <xacro:revo2_hand
+    arm_prefix="${hand_prefix}"
+    connected_to="world" />
+
+  <xacro:revo2_ros2_control
+    name="${'revo2_' + hand_prefix + '_hardware_interface'}"
+    hand_side="${hand_prefix}"
+    initial_positions_file="$(arg initial_positions_file)"
+    protocol_config_file="$(arg protocol_config_file)"
+    read_touch_status="$(arg read_touch_status)"
+    touch_read_hz="$(arg touch_read_hz)"
+    if_sim="$(arg if_sim)" />
+
+</robot>
