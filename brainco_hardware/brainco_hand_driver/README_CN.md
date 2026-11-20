@@ -36,19 +36,12 @@
 
 ## 当前包的实际行为
 
-当前实现的核心是 `ros2_control` 前向控制器，不是旧版 README 中的轨迹控制器。
+- `revo2_joint_state` 和 `joint_forward_pos_controller` 默认加载并激活。
+- 速度、PID 和轨迹控制器默认加载为 inactive，可在启动后切换。
+- 每只手默认以 `500 Hz` 更新，使用 `revo2_left` 或 `revo2_right` 命名空间。
 
-- `revo2_joint_state` 默认加载并激活
-- `joint_forward_pos_controller` 默认加载并激活
-- `joint_forward_vel_controller` 默认加载但默认不激活
-- 每只手的默认 controller manager 更新频率为 `500 Hz`
-- 默认会使用 `revo2_left` 或 `revo2_right` 命名空间
-
-如果你在迁移旧的集成代码，需要特别注意：
-
-- 默认 `description_package` 已经是 `revoarm_description`
-- `revoarm_description` 内部仍会引用 `revo2_description` 的网格资源
-- 旧文档里的 `joint_trajectory_controller` / Action 示例已经不适用于当前包
+默认使用驱动自身的 `urdf/revo2.single.system.xacro`，从 `revo2_description`
+加载左右手模型。模型依赖的版本固定在根目录 `brainco_hand.repos` 中。
 
 ## 环境依赖
 
@@ -60,7 +53,6 @@
 - `forward_command_controller`
 - `robot_state_publisher`
 - `xacro`
-- `revoarm_description`
 - `revo2_description`
 
 ## 构建
@@ -68,8 +60,10 @@
 请在 ROS 2 工作空间根目录构建：
 
 ```bash
-cd revoarm_hardware/Revoarm_ws
+cd ~/brainco_ws
 source /opt/ros/humble/setup.bash
+
+bash src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
 
 # 仅启用 Modbus
 colcon build --packages-up-to revo2_driver --symlink-install
@@ -82,13 +76,11 @@ source install/setup.bash
 
 ### BrainCo Stark SDK
 
-当前包已经自带 `vendor/` 目录下的 Stark SDK，当前版本为 `v2.0.9`，
-`scripts/download_sdk.sh` 也固定下载同一版本。
-如果需要刷新 SDK，可在包目录执行：
+`scripts/download_sdk.sh` 将固定版本 `v2.0.9` 的 Stark SDK 安装到 `vendor/`。
+可在工作空间根目录执行：
 
 ```bash
-cd revoarm_hardware/Revoarm_ws/src/brainco_drivers/revo2_driver
-./scripts/download_sdk.sh
+bash src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
 ```
 
 脚本会检查平台、动态库架构、头文件和 SDK 许可证后再安装。头文件和动态库必须
@@ -259,7 +251,7 @@ ros2 launch revo2_driver revo2_system.launch.py hand_side:=right if_sim:=true
 
 | 参数 | 默认值 | 说明 |
 |---|---|---|
-| `description_package` | `revoarm_description` | 提供 `urdf/system/revo2.single.system.xacro` 的描述包 |
+| `description_package` | `revo2_description` | 默认由驱动组装公开模型；自定义包需提供 `urdf/revo2.single.system.xacro` |
 | `hand_side` | `right` | `left` 或 `right` |
 | `protocol` | `modbus` | `modbus` 或 `canfd` |
 | `protocol_config_file` | `""` | 协议 YAML 覆盖路径 |
@@ -273,7 +265,7 @@ ros2 launch revo2_driver revo2_system.launch.py hand_side:=right if_sim:=true
 
 | 参数 | 默认值 | 说明 |
 |---|---|---|
-| `description_package` | `revoarm_description` | 描述包 |
+| `description_package` | `revo2_description` | 默认由驱动组装公开模型；自定义包需提供 `urdf/revo2.single.system.xacro` |
 | `left_protocol` | `modbus` | 左手协议 |
 | `right_protocol` | `modbus` | 右手协议 |
 | `left_protocol_config_file` | `""` | 左手协议 YAML 覆盖路径 |

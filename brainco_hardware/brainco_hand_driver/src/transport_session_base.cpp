@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "revo2_driver/transport_session_base.hpp"
+#include "brainco_hand_driver/transport_session_base.hpp"
 
 #include <chrono>
 #include <cstddef>
@@ -21,8 +21,8 @@
 #include <string>
 #include <thread>
 
-#include "revo2_driver/logger_macros.hpp"
-#include "revo2_driver/sdk_helpers.hpp"
+#include "brainco_hand_driver/logger_macros.hpp"
+#include "brainco_hand_driver/sdk_helpers.hpp"
 
 namespace revo2_driver
 {

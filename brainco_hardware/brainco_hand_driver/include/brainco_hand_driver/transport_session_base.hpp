@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "revo2_driver/brainco_hand_api.hpp"
+#include "brainco_hand_driver/brainco_hand_api.hpp"
 
 // Forward declarations from Stark SDK
 struct DeviceHandler;

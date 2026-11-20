@@ -49,12 +49,13 @@ def _default_protocol_filename(hand_side, protocol):
     return f"protocol_{protocol}_{hand_side}.yaml"
 
 
-def _default_initial_positions_filename(hand_side):
-    return f"revo2_initial_positions.yaml"
-
-
-def _generate_description(description_package, mappings):
-    share = get_package_share_directory(description_package)
+def _generate_description(driver_share, description_package, mappings):
+    # The public model package supplies the hand meshes and geometry only.
+    # Keep support for a custom package that provides its own system Xacro.
+    share = (
+        driver_share if description_package == "revo2_description"
+        else get_package_share_directory(description_package)
+    )
     xacro_path = os.path.join(share, "urdf", "revo2.single.system.xacro")
     return xacro.process_file(xacro_path, mappings=mappings).toprettyxml(indent="  ")
 
@@ -104,8 +105,6 @@ def launch_setup(context: LaunchContext):
 
     driver_share = get_package_share_directory("revo2_driver")
     driver_config_root = os.path.join(driver_share, "config")
-    desc_share = get_package_share_directory("revo2_description")
-    desc_config_root = os.path.join(desc_share, "config")
 
     protocol_config_file = _resolve_config_path(
         driver_config_root,
@@ -120,9 +119,9 @@ def launch_setup(context: LaunchContext):
             yaml.safe_dump(protocol_config, stream)
             protocol_config_file = stream.name
     initial_positions_file = _resolve_config_path(
-        desc_config_root,
+        driver_config_root,
         initial_positions_override,
-        _default_initial_positions_filename(hand_side),
+        "revo2_initial_positions.yaml",
     )
     controllers_file = _load_controllers(
         driver_share,
@@ -133,6 +132,7 @@ def launch_setup(context: LaunchContext):
 
     robot_description = {
         "robot_description": _generate_description(
+            driver_share,
             description_package,
             {
                 "hand_side": hand_side,
@@ -219,7 +219,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "description_package",
             default_value="revo2_description",
-            description="Description package with revo2 system xacro files.",
+            description="Use the public Revo2 model or a package with urdf/revo2.single.system.xacro.",
         ),
         DeclareLaunchArgument(
             "hand_side",

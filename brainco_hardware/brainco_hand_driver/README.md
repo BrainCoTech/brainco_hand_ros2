@@ -32,19 +32,12 @@ Tactile state interfaces are exported on 5 fingertip joints:
 
 ## Current Package Behavior
 
-The current implementation is centered around `ros2_control` forward controllers, not a trajectory controller.
+- `revo2_joint_state` and `joint_forward_pos_controller` are active at startup.
+- The velocity, PID, and trajectory controllers are loaded inactive and can be switched on after startup.
+- Each hand defaults to a `500 Hz` update rate and the `revo2_left` or `revo2_right` namespace.
 
-- `revo2_joint_state` is loaded and activated by default
-- `joint_forward_pos_controller` is loaded and activated by default
-- `joint_forward_vel_controller` is loaded but kept inactive by default
-- default controller manager update rate is `500 Hz`
-- default launch namespace is `revo2_left` or `revo2_right`
-
-If you are updating older integration code, note these important differences:
-
-- default `description_package` is `revoarm_description`
-- the package still relies on `revo2_description` mesh assets through `revoarm_description`
-- the README examples that use `joint_trajectory_controller` are outdated and should not be used for this package
+The driver supplies `urdf/revo2.single.system.xacro` and loads the hand geometry
+from `revo2_description`. The dependency revision is pinned in `brainco_hand.repos`.
 
 ## Environment
 
@@ -56,7 +49,6 @@ If you are updating older integration code, note these important differences:
 - `forward_command_controller`
 - `robot_state_publisher`
 - `xacro`
-- `revoarm_description`
 - `revo2_description`
 
 ## Build
@@ -64,8 +56,10 @@ If you are updating older integration code, note these important differences:
 Build from your ROS 2 workspace root:
 
 ```bash
-cd revoarm_hardware/Revoarm_ws
+cd ~/brainco_ws
 source /opt/ros/humble/setup.bash
+
+bash src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
 
 # Modbus only
 colcon build --packages-up-to revo2_driver --symlink-install
@@ -78,13 +72,10 @@ source install/setup.bash
 
 ### BrainCo Stark SDK
 
-The Stark SDK is vendored under `vendor/` and can be used directly. The current vendored version is
-`v2.0.9`, and `scripts/download_sdk.sh` is pinned to download the same SDK version.
-If you need to refresh it:
+`scripts/download_sdk.sh` installs Stark SDK `v2.0.9` into `vendor/`. Run it from the workspace root:
 
 ```bash
-cd revoarm_hardware/Revoarm_ws/src/brainco_drivers/revo2_driver
-./scripts/download_sdk.sh
+bash src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
 ```
 
 The script validates the platform, library architecture, header and SDK license before
@@ -256,7 +247,7 @@ ros2 launch revo2_driver revo2_system.launch.py hand_side:=right if_sim:=true
 
 | Argument | Default | Description |
 |---|---|---|
-| `description_package` | `revoarm_description` | Package that provides `urdf/system/revo2.single.system.xacro` |
+| `description_package` | `revo2_description` | Use the bundled system Xacro with the public model. A custom package must provide `urdf/revo2.single.system.xacro`. |
 | `hand_side` | `right` | `left` or `right` |
 | `protocol` | `modbus` | `modbus` or `canfd` |
 | `protocol_config_file` | `""` | Override protocol YAML |
@@ -270,7 +261,7 @@ ros2 launch revo2_driver revo2_system.launch.py hand_side:=right if_sim:=true
 
 | Argument | Default | Description |
 |---|---|---|
-| `description_package` | `revoarm_description` | Description package |
+| `description_package` | `revo2_description` | Use the bundled system Xacro with the public model. A custom package must provide `urdf/revo2.single.system.xacro`. |
 | `left_protocol` | `modbus` | Left-hand protocol |
 | `right_protocol` | `modbus` | Right-hand protocol |
 | `left_protocol_config_file` | `""` | Left protocol YAML override |

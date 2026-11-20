@@ -12,7 +12,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "description_package",
             default_value="revo2_description",
-            description="Description package with revo2 system xacro files.",
+            description="Use the public Revo2 model or a package with urdf/revo2.single.system.xacro.",
         ),
         DeclareLaunchArgument(
             "left_protocol",

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "revo2_driver/brainco_hand_hardware.hpp"
+#include "brainco_hand_driver/brainco_hand_hardware.hpp"
 
 #include <exception>
 #include <functional>

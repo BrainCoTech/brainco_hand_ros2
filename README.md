@@ -52,7 +52,7 @@ This project contains the following main packages:
 brainco_hand_ros2/
 ├── revo2_description/                    # Revo2 dexterous hand URDF description package
 ├── brainco_hardware/                     # Hardware driver packages
-│   ├── brainco_hand_driver/            # Revo2 dexterous hand hardware driver
+│   ├── brainco_hand_driver/            # Revo2 dexterous hand hardware driver (ROS package: revo2_driver)
 │   └── stark_ethercat/brainco_hand_ethercat_driver/                  # EtherCAT driver
 ├── brainco_gazebo/                      # Gazebo simulation package
 ├── brainco_moveit_config/               # MoveIt configuration package
@@ -72,7 +72,7 @@ brainco_hand_ros2/
 - RViz visualization support
 - Complete joint and link definitions
 
-The model package is imported by `vcs import` from `brainco_hand.repos`. See the [Revo 2 model documentation](https://github.com/BrainCoTech/revo2_description/blob/main/README.md).
+The model package is imported by `vcs import` from `brainco_hand.repos`. See the [Revo 2 model documentation](https://github.com/BrainCoTech/revo2_description/blob/92cc697c7fa691db59404ce52344f3969a5ef7a6/README.md).
 
 ### 2. brainco_hardware
 
@@ -156,7 +156,7 @@ git clone https://github.com/BrainCoTech/brainco_hand_ros2.git
 cd brainco_hand_ros2
 
 # Use vcs tool to clone dependency repositories
-vcs import . < brainco_hand.repos --recursive --skip-existing
+vcs import . < brainco_hand.repos --recursive
 ```
 
 **Note**: If your system does not have the `vcs` tool installed, please install it first:
@@ -186,32 +186,32 @@ rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 Before building, download the pinned Stark SDK on the target Linux machine. Shared libraries are not tracked by Git; the script selects x86_64 or ARM64. Install `curl` or `wget`, `unzip`, and `file` if needed.
 
 ```bash
-bash <workspace>/src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
+bash src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
 ```
 
 **Method 1: Using Build Script (Recommended, Simple and Convenient)**
 
 ```bash
 # Default build (CAN FD and EtherCAT disabled)
-./build.sh
+bash src/brainco_hand_ros2/build.sh
 
 # Enable CAN FD support
-./build.sh --canfd
+bash src/brainco_hand_ros2/build.sh --canfd
 
 # Enable EtherCAT support
-./build.sh --ethercat
+bash src/brainco_hand_ros2/build.sh --ethercat
 
 # Enable both CAN FD and EtherCAT
-./build.sh --canfd --ethercat
+bash src/brainco_hand_ros2/build.sh --canfd --ethercat
 
 # Release mode build
-./build.sh --release
+bash src/brainco_hand_ros2/build.sh --release
 
 # Release mode with all features enabled
-./build.sh --release --canfd --ethercat
+bash src/brainco_hand_ros2/build.sh --release --canfd --ethercat
 
 # Show help information
-./build.sh --help
+bash src/brainco_hand_ros2/build.sh --help
 ```
 
 **Method 2: Using colcon Commands**
@@ -226,8 +226,8 @@ colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON --packages-ignore 
 # Enable EtherCAT support
 colcon build --symlink-install
 
-# Build brainco_hand_driver package only (default Modbus)
-colcon build --packages-up-to brainco_hand_driver --symlink-install
+# Build the driver and its model dependency (default Modbus)
+colcon build --packages-up-to revo2_driver --symlink-install
 ```
 
 **Notes:**
@@ -237,18 +237,24 @@ colcon build --packages-up-to brainco_hand_driver --symlink-install
 - Default configuration (CAN FD and EtherCAT disabled) can use Modbus protocol normally
 - If you need to use CAN FD or EtherCAT protocol, please enable them through corresponding parameters during build
 
+After building, source the workspace from its root:
+
+```bash
+source install/setup.bash
+```
+
 ## Usage Scenarios
 
 ### Scenario 1: Hardware Control (Real Dexterous Hand)
 
-If you have real Revo2 dexterous hand hardware, you can use `brainco_hand_driver` for control:
+If you have real Revo2 dexterous hand hardware, you can use `revo2_driver` for control:
 
 ```bash
 # Launch right hand system (Modbus mode)
-ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right
+ros2 launch revo2_driver revo2_system.launch.py hand_side:=right
 
 # Launch dual-hand system (Modbus mode)
-ros2 launch brainco_hand_driver dual_revo2_system.launch.py
+ros2 launch revo2_driver dual_revo2_system.launch.py
 
 # Launch right hand system (with MoveIt)
 ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right

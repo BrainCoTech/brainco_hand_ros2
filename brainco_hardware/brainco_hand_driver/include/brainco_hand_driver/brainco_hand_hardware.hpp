@@ -17,9 +17,9 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "revo2_driver/brainco_hand_api.hpp"
-#include "revo2_driver/command_converter.hpp"
-#include "revo2_driver/srv/touch_sensor_command.hpp"
+#include "brainco_hand_driver/brainco_hand_api.hpp"
+#include "brainco_hand_driver/command_converter.hpp"
+#include "brainco_hand_driver/srv/touch_sensor_command.hpp"
 #include "logger_macros.hpp"
 
 namespace revo2_driver

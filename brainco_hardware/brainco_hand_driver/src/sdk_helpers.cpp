@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "revo2_driver/sdk_helpers.hpp"
+#include "brainco_hand_driver/sdk_helpers.hpp"
 
 #include "stark-sdk.h"
 

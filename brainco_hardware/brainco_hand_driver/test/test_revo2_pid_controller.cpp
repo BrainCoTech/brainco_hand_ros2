@@ -15,7 +15,7 @@
 #include "hardware_interface/handle.hpp"
 #include "hardware_interface/loaned_command_interface.hpp"
 #include "hardware_interface/loaned_state_interface.hpp"
-#include "revo2_driver/revo2_pid_controller.hpp"
+#include "brainco_hand_driver/revo2_pid_controller.hpp"
 #include "rclcpp/executors/single_threaded_executor.hpp"
 
 namespace revo2_driver

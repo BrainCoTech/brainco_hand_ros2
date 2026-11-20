@@ -1,4 +1,4 @@
-#include "revo2_driver/revo2_pid_controller.hpp"
+#include "brainco_hand_driver/revo2_pid_controller.hpp"
 
 #include <algorithm>
 #include <cmath>

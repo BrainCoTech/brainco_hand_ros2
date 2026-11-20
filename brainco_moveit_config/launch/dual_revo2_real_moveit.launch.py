@@ -24,10 +24,10 @@ def build_xacro_command() -> list:
         PathJoinSubstitution([FindExecutable(name="xacro")]),
         " ",
         PathJoinSubstitution([
-            FindPackageShare("brainco_hand_driver"),
+            FindPackageShare("brainco_moveit_config"),
             "config/dual_revo2.urdf.xacro",
         ]),
-        " ",
+        " use_real_hardware:=true ",
         "left_protocol_config_file:=", LaunchConfiguration("left_protocol_config_file"),
         " ",
         "right_protocol_config_file:=", LaunchConfiguration("right_protocol_config_file"),

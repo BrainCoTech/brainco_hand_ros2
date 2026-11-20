@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "revo2_driver/canfd_session.hpp"
+#include "brainco_hand_driver/canfd_session.hpp"
 
 #include <algorithm>
 #include <cstdint>
 
-#include "revo2_driver/logger_macros.hpp"
+#include "brainco_hand_driver/logger_macros.hpp"
 
 namespace revo2_driver
 {

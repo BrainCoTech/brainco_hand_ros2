@@ -98,6 +98,14 @@ rosidl_generate_interfaces(${PROJECT_NAME}_interfaces
   LIBRARY_NAME ${PROJECT_NAME}
 )
 
+# Keep driver includes under brainco_hand_driver while rosidl uses the ROS package name.
+set(touch_sensor_command_header
+  "${CMAKE_CURRENT_BINARY_DIR}/include/brainco_hand_driver/srv/touch_sensor_command.hpp")
+file(GENERATE
+  OUTPUT "${touch_sensor_command_header}"
+  CONTENT "#pragma once\n\n#include \"${PROJECT_NAME}/srv/touch_sensor_command.hpp\"\n"
+)
+
 # -----------------------------------------------------------------------------
 # 创建 BrainCo 机械手驱动库
 # -----------------------------------------------------------------------------
@@ -138,6 +146,7 @@ target_compile_features(${PROJECT_NAME} PUBLIC c_std_99 cxx_std_17)
 # -----------------------------------------------------------------------------
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
@@ -206,6 +215,10 @@ install(
   DIRECTORY include/
   DESTINATION include
 )
+install(
+  FILES "${touch_sensor_command_header}"
+  DESTINATION include/brainco_hand_driver/srv
+)
 
 # 安装随包分发的第三方共享库（Stark SDK + ZLG CANFD（如果启用））
 set(BRAINCO_VENDOR_SHARED_LIBS
@@ -250,6 +263,7 @@ install(FILES
 install(DIRECTORY
   launch      # 启动文件
   config      # 配置文件
+  urdf        # 单手系统入口，复用 revo2_description 的手部模型
   setup       # 串口 bootstrap / udev / check
   scripts     # 编译前 download_sdk.sh（与 revo3_driver 一致）
   DESTINATION share/${PROJECT_NAME}/

@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "revo2_driver/brainco_hand_api.hpp"
+#include "brainco_hand_driver/brainco_hand_api.hpp"
 
 #include <memory>
 
-#include "revo2_driver/modbus_session.hpp"
-#include "revo2_driver/sdk_helpers.hpp"
+#include "brainco_hand_driver/modbus_session.hpp"
+#include "brainco_hand_driver/sdk_helpers.hpp"
 #include "stark-sdk.h"
 
 #if ENABLE_CANFD
-#include "revo2_driver/canfd_session.hpp"
+#include "brainco_hand_driver/canfd_session.hpp"
 #endif
 
 namespace revo2_driver
