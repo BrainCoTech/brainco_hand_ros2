@@ -22,7 +22,7 @@
   <link name="world" />
   <joint name="${'world_to_' + side + '_base'}" type="fixed">
     <parent link="world" />
-    <child link="${side + '_base_link'}" />
+    <child link="${side + '_hand_base_link'}" />
   </joint>
 
   <xacro:revo2_ros2_control
