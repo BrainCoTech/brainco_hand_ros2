@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<robot name="revo2_single" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="hand_side" default="right" />
+  <xacro:arg name="initial_positions_file" default="" />
+  <xacro:arg name="protocol_config_file" default="" />
+  <xacro:arg name="read_touch_status" default="true" />
+  <xacro:arg name="touch_read_hz" default="20.0" />
+  <xacro:arg name="if_sim" default="false" />
+
+  <xacro:property name="side" value="$(arg hand_side)" />
+  <xacro:include filename="$(find revo2_driver)/config/revo2.ros2_control.xacro" />
+
+  <xacro:if value="${side == 'left'}">
+    <xacro:include filename="$(find revo2_description)/urdf/revo2_left_hand.urdf.xacro" />
+    <xacro:revo2_left_hand />
+  </xacro:if>
+  <xacro:if value="${side == 'right'}">
+    <xacro:include filename="$(find revo2_description)/urdf/revo2_right_hand.urdf.xacro" />
+    <xacro:revo2_right_hand />
+  </xacro:if>
+
+  <link name="world" />
+  <joint name="${'world_to_' + side + '_base'}" type="fixed">
+    <parent link="world" />
+    <child link="${side + '_hand_base_link'}" />
+  </joint>
+
+  <xacro:revo2_ros2_control
+    name="${'revo2_' + side + '_hardware_interface'}"
+    hand_side="${side}"
+    initial_positions_file="$(arg initial_positions_file)"
+    protocol_config_file="$(arg protocol_config_file)"
+    read_touch_status="$(arg read_touch_status)"
+    touch_read_hz="$(arg touch_read_hz)"
+    if_sim="$(arg if_sim)" />
+</robot>

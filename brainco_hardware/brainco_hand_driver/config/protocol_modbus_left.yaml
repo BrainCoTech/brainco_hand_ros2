@@ -5,27 +5,48 @@ hardware:
   # 注意：左手通常使用 slave_id 126，右手使用 127
   slave_id: 126
   log_level: info
-  ensure_physical_mode: true
-  ctrl_param_duration_ms: 55
+  sdk_file_logging: false  # SDK logs/revo2_<timestamp>.log; restart required
+  finger_unit_mode: normalized
+  ensure_physical_mode: false
+  ctrl_param_duration_ms: 10
   position_command_scale: 572.9577951308232
   position_state_scale: 0.0017453292519943296
   velocity_state_scale: 0.0017453292519943296
+  velocity_command_scale: 572.9577951308232
+  velocity_device_min: -1000.0
+  velocity_device_max: 1000.0
   position_device_min: 0.0
   position_device_max: 1000.0
+  # Physical mode scale overrides are used only when finger_unit_mode: physical.
+  # Leave them commented until the physical angle range is calibrated on the real hand.
+  # The values below map ROS radians to device degrees as a starting point.
+  # physical_position_command_scale: 57.29577951308232
+  # physical_position_state_scale: 0.017453292519943295
+  # physical_velocity_state_scale: 0.017453292519943295
+  # physical_velocity_command_scale: 57.29577951308232
+  # physical_position_device_min: 0.0
+  # physical_position_device_max: 100.0
+  # physical_velocity_device_min: -130.0
+  # physical_velocity_device_max: 130.0
+  # 速度百分比参数 (0-100%)，用于调整执行速度
+  # 例如：50.0 表示以 50% 的速度执行，100.0 表示全速
+  velocity_percentage: 100.0
   # 当 auto_detect 为 true 时，port 和 baudrate 会被忽略，使用自动检测到的值
   # 当 auto_detect 为 false 时，使用指定的 port 和 baudrate
-  port: /dev/ttyUSB0
+  port: /dev/revo2_hand_left
   baudrate: 460800
   # 启用自动检测：自动扫描所有可用串口，找到 Revo2 设备
-  auto_detect: true
+  auto_detect: false
   # 快速检测模式：true 为快速模式（推荐），false 为完整检测（更慢但更准确）
-  auto_detect_quick: true
+  auto_detect_quick: true 
   # 自动检测端口提示：如果指定，只在此端口范围内检测（例如 "/dev/ttyUSB" 会检测所有 ttyUSB*）
   # 留空则检测所有可用串口
   # 对于双手配置，建议为左手和右手指定不同的端口提示，避免冲突
   # 例如：左手使用 "/dev/ttyUSB0"，右手使用 "/dev/ttyUSB2"
   auto_detect_port: ""
+  # 启动时串口/udev 可能比 ros2_control 稍晚就绪；失败后自动重试，避免手动重启硬件驱动
+  connection_retry_attempts: 20
+  connection_retry_interval_ms: 500
   # 如果自动检测有问题，可以禁用自动检测并手动指定端口：
   # auto_detect: false
   # port: /dev/ttyUSB0  # 根据实际设备端口修改
-

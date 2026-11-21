@@ -4,7 +4,7 @@
 # BrainCo 机械手驱动程序构建配置
 
 cmake_minimum_required(VERSION 3.16)
-project(brainco_hand_driver)
+project(revo2_driver)
 
 # -----------------------------------------------------------------------------
 # 编译选项
@@ -31,11 +31,11 @@ set(BRAINCO_STARK_SDK_LIB_PATH "${BRAINCO_STARK_SDK_LIB_DIR}/libbc_stark_sdk.so"
 # 验证 SDK 文件完整性
 # -----------------------------------------------------------------------------
 if(NOT EXISTS ${BRAINCO_STARK_SDK_INCLUDE_DIR}/stark-sdk.h)
-  message(FATAL_ERROR "stark-sdk.h not found in ${BRAINCO_STARK_SDK_INCLUDE_DIR}. Please run './download_sdk.sh' first.")
+  message(FATAL_ERROR "stark-sdk.h not found in ${BRAINCO_STARK_SDK_INCLUDE_DIR}. Please run 'bash scripts/download_sdk.sh' first.")
 endif()
 
 if(NOT EXISTS ${BRAINCO_STARK_SDK_LIB_PATH})
-  message(FATAL_ERROR "BrainCo Stark SDK library not found: ${BRAINCO_STARK_SDK_LIB_PATH}. Please run './download_sdk.sh' first.")
+  message(FATAL_ERROR "BrainCo Stark SDK library not found: ${BRAINCO_STARK_SDK_LIB_PATH}. Please run 'bash scripts/download_sdk.sh' first.")
 endif()
 
 # -----------------------------------------------------------------------------
@@ -45,7 +45,7 @@ endif()
 add_library(brainco_stark_sdk SHARED IMPORTED GLOBAL)
 set_target_properties(brainco_stark_sdk PROPERTIES
   IMPORTED_LOCATION ${BRAINCO_STARK_SDK_LIB_PATH}           # 库文件位置
-  IMPORTED_NO_SONAME TRUE
+  IMPORTED_NO_SONAME TRUE                                   # 避免运行时依赖写入本机绝对路径
   INTERFACE_INCLUDE_DIRECTORIES ${BRAINCO_STARK_SDK_INCLUDE_DIR}  # 头文件目录
 )
 
@@ -89,6 +89,22 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(hardware_interface REQUIRED)
+find_package(controller_interface REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}_interfaces
+  "srv/TouchSensorCommand.srv"
+  LIBRARY_NAME ${PROJECT_NAME}
+)
+
+# Keep driver includes under brainco_hand_driver while rosidl uses the ROS package name.
+set(touch_sensor_command_header
+  "${CMAKE_CURRENT_BINARY_DIR}/include/brainco_hand_driver/srv/touch_sensor_command.hpp")
+file(GENERATE
+  OUTPUT "${touch_sensor_command_header}"
+  CONTENT "#pragma once\n\n#include \"${PROJECT_NAME}/srv/touch_sensor_command.hpp\"\n"
+)
 
 # -----------------------------------------------------------------------------
 # 创建 BrainCo 机械手驱动库
@@ -99,6 +115,8 @@ set(${PROJECT_NAME}_SOURCES
   src/transport_session_base.cpp
   src/modbus_session.cpp
   src/sdk_helpers.cpp
+  src/revo2_pid_controller.cpp
+  src/sdk_services.cpp
 )
 
 # 条件性地添加 CAN FD 源文件
@@ -128,6 +146,7 @@ target_compile_features(${PROJECT_NAME} PUBLIC c_std_99 cxx_std_17)
 # -----------------------------------------------------------------------------
 target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
@@ -141,6 +160,8 @@ ament_target_dependencies(
   "rclcpp"
   "rclcpp_lifecycle"
   "hardware_interface"
+  "controller_interface"
+  "sensor_msgs"
 )
 
 # -----------------------------------------------------------------------------
@@ -150,6 +171,13 @@ ament_target_dependencies(
 target_link_libraries(${PROJECT_NAME}
   brainco_stark_sdk
 )
+rosidl_get_typesupport_target(_revo2_typesupport ${PROJECT_NAME}_interfaces
+  "rosidl_typesupport_cpp")
+target_link_libraries(${PROJECT_NAME} "${_revo2_typesupport}")
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_link_options(${PROJECT_NAME} PRIVATE "-Wl,--disable-new-dtags")
+endif()
 
 # 条件性地链接 CAN FD 库
 if(ENABLE_CANFD)
@@ -176,7 +204,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # 插件系统配置
 # 导出硬件接口插件描述文件，使 ROS2 能发现并加载此硬件接口插件
 # -----------------------------------------------------------------------------
-pluginlib_export_plugin_description_file(hardware_interface brainco_hand_driver_plugins.xml)
+pluginlib_export_plugin_description_file(hardware_interface revo2_driver_plugins.xml)
+pluginlib_export_plugin_description_file(controller_interface revo2_pid_controller.xml)
 
 # -----------------------------------------------------------------------------
 # 安装配置
@@ -185,6 +214,10 @@ pluginlib_export_plugin_description_file(hardware_interface brainco_hand_driver_
 install(
   DIRECTORY include/
   DESTINATION include
+)
+install(
+  FILES "${touch_sensor_command_header}"
+  DESTINATION include/brainco_hand_driver/srv
 )
 
 # 安装随包分发的第三方共享库（Stark SDK + ZLG CANFD（如果启用））
@@ -204,6 +237,12 @@ install(
   DESTINATION lib
 )
 
+install(
+  FILES "${BRAINCO_STARK_SDK_VENDOR_DIR}/LICENSE"
+  DESTINATION share/${PROJECT_NAME}/licenses
+  RENAME bc-stark-sdk-LICENSE
+)
+
 # 安装主项目库和可执行文件
 install(
   TARGETS ${PROJECT_NAME}
@@ -215,7 +254,8 @@ install(
 
 # 安装插件配置文件
 install(FILES
-  brainco_hand_driver_plugins.xml
+  revo2_driver_plugins.xml
+  revo2_pid_controller.xml
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -223,7 +263,9 @@ install(FILES
 install(DIRECTORY
   launch      # 启动文件
   config      # 配置文件
-  scripts     # 脚本文件
+  urdf        # 单手系统入口，复用 revo2_description 的手部模型
+  setup       # 串口 bootstrap / udev / check
+  scripts     # 编译前 download_sdk.sh（与 revo3_driver 一致）
   DESTINATION share/${PROJECT_NAME}/
   USE_SOURCE_PERMISSIONS  # 保持原始文件权限
 )
@@ -253,12 +295,28 @@ ament_export_dependencies(
   rclcpp
   rclcpp_lifecycle
   hardware_interface
+  controller_interface
+  sensor_msgs
+  rosidl_default_runtime
 )
 
 # -----------------------------------------------------------------------------
 # 测试配置
 # -----------------------------------------------------------------------------
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_revo2_pid_controller
+    test/test_revo2_pid_controller.cpp
+    src/revo2_pid_controller.cpp
+  )
+  target_include_directories(test_revo2_pid_controller PRIVATE include)
+  target_compile_features(test_revo2_pid_controller PRIVATE cxx_std_17)
+  ament_target_dependencies(test_revo2_pid_controller
+    controller_interface hardware_interface rclcpp rclcpp_lifecycle sensor_msgs pluginlib
+  )
+  set_tests_properties(test_revo2_pid_controller PROPERTIES
+    ENVIRONMENT "ROS_LOCALHOST_ONLY=1;ROS_LOG_DIR=${CMAKE_CURRENT_BINARY_DIR}/test_ros_logs"
+  )
   find_package(ament_lint_auto REQUIRED)
   # Keep the generated upstream SDK header unchanged; lint project code normally.
   list(APPEND ament_cmake_cpplint_ADDITIONAL_EXCLUDE

@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+  Revo2 hand (end-effector) macro — attaches a revo2 dexterous hand
+  to a parent link via a fixed joint.
+
+  Parameters:
+    arm_prefix     "left" | "right"
+    connected_to   parent link name (default: {arm_prefix}_connector_tip)
+    xyz, rpy       mounting offset relative to connected_to
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find revo2_description)/urdf/revo2_left_hand.urdf.xacro" />
+  <xacro:include filename="$(find revo2_description)/urdf/revo2_right_hand.urdf.xacro" />
+
+  <xacro:macro name="revo2_hand" params="
+    arm_prefix
+    connected_to:=''
+    xyz:='0 0 0'
+    rpy:='0 0 0'
+  ">
+
+    <!-- Default connected_to: {arm_prefix}_connector_tip -->
+    <xacro:property name="parent_link"
+      value="${connected_to if connected_to != '' else arm_prefix + '_connector_tip'}" />
+
+    <!-- Fixed joint connecting the hand to the arm end-effector -->
+    <joint name="${arm_prefix}_hand_base_joint" type="fixed">
+      <parent link="${parent_link}" />
+      <child  link="${arm_prefix}_hand_base_link" />
+      <origin xyz="${xyz}" rpy="${rpy}" />
+    </joint>
+
+    <!-- Instantiate the appropriate hand -->
+    <xacro:if value="${arm_prefix == 'left'}">
+      <xacro:revo2_left_hand />
+    </xacro:if>
+    <xacro:if value="${arm_prefix == 'right'}">
+      <xacro:revo2_right_hand />
+    </xacro:if>
+
+  </xacro:macro>
+</robot>

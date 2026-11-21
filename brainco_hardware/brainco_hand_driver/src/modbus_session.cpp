@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-namespace brainco_hand_driver
+namespace revo2_driver
 {
 
 ModbusSession::ModbusSession(BraincoHandApi::DriverConfig & config)
@@ -355,4 +355,4 @@ std::optional<BraincoHandApi::ConnectionInfo> ModbusSession::connection_info() c
   return resolved_connection_;
 }
 
-}  // namespace brainco_hand_driver
+}  // namespace revo2_driver

@@ -24,7 +24,7 @@
 #include "brainco_hand_driver/canfd_session.hpp"
 #endif
 
-namespace brainco_hand_driver
+namespace revo2_driver
 {
 
 auto brainco_log_level_to_string(BraincoLogLevel level) -> std::string
@@ -69,7 +69,9 @@ struct BraincoHandApi::Impl
   }
 };
 
-BraincoHandApi::BraincoHandApi() : impl_(std::make_unique<Impl>()) { configure(DriverConfig{}); }
+// Delay SDK logging until the real configuration is available. Some SDK builds
+// initialize their process-wide logger only once.
+BraincoHandApi::BraincoHandApi() : impl_(std::make_unique<Impl>()) {}
 
 BraincoHandApi::BraincoHandApi(const DriverConfig & config) : impl_(std::make_unique<Impl>())
 {
@@ -88,15 +90,19 @@ auto BraincoHandApi::configure(const DriverConfig & config) -> void
   close();
   impl_->config = config;
 
-  ::init_logging(to_sdk_log_level(config.log_level));
+  ::init_logging_with_options(to_sdk_log_level(config.log_level), config.sdk_file_logging);
   impl_->rebuild_session();
 }
 
 auto BraincoHandApi::open() -> bool
 {
-  if (!impl_ || !impl_->session)
+  if (!impl_)
   {
     return false;
+  }
+  if (!impl_->session)
+  {
+    configure(impl_->config);
   }
   return impl_->session->open();
 }
@@ -127,13 +133,14 @@ auto BraincoHandApi::fetch_device_info(uint8_t slave_id, DeviceInfoData & info) 
   return impl_->session->fetch_device_info(slave_id, info);
 }
 
-auto BraincoHandApi::ensure_physical_unit_mode(uint8_t slave_id) -> bool
+auto BraincoHandApi::ensure_finger_unit_mode(
+  uint8_t slave_id, FingerUnitModeSetting mode) -> bool
 {
   if (!impl_ || !impl_->session)
   {
     return false;
   }
-  return impl_->session->ensure_physical_unit_mode(slave_id);
+  return impl_->session->ensure_finger_unit_mode(slave_id, mode);
 }
 
 auto BraincoHandApi::get_motor_status(uint8_t slave_id) const -> std::optional<MotorStatus>
@@ -143,6 +150,43 @@ auto BraincoHandApi::get_motor_status(uint8_t slave_id) const -> std::optional<M
     return std::nullopt;
   }
   return impl_->session->get_motor_status(slave_id);
+}
+
+auto BraincoHandApi::get_touch_status(uint8_t slave_id) const -> std::optional<TouchStatus>
+{
+  if (!impl_ || !impl_->session)
+  {
+    return std::nullopt;
+  }
+  return impl_->session->get_touch_status(slave_id);
+}
+
+auto BraincoHandApi::get_finger_position_range(uint8_t slave_id) const
+  -> std::optional<FingerPositionRange>
+{
+  if (!impl_ || !impl_->session)
+  {
+    return std::nullopt;
+  }
+  return impl_->session->get_finger_position_range(slave_id);
+}
+
+auto BraincoHandApi::enable_touch_sensors(uint8_t slave_id, uint8_t sensor_mask) -> int32_t
+{
+  if (!impl_ || !impl_->session)
+  {
+    return -1;
+  }
+  return impl_->session->enable_touch_sensors(slave_id, sensor_mask);
+}
+
+auto BraincoHandApi::calibrate_touch_sensors(uint8_t slave_id, uint8_t sensor_mask) -> int32_t
+{
+  if (!impl_ || !impl_->session)
+  {
+    return -1;
+  }
+  return impl_->session->calibrate_touch_sensors(slave_id, sensor_mask);
 }
 
 auto BraincoHandApi::set_finger_positions_and_durations(
@@ -156,6 +200,83 @@ auto BraincoHandApi::set_finger_positions_and_durations(
   return impl_->session->set_finger_positions_and_durations(slave_id, positions, durations, count);
 }
 
+auto BraincoHandApi::set_finger_positions_and_velocities(
+  uint8_t slave_id, const uint16_t * positions, const uint16_t * velocities, std::size_t count)
+  -> bool
+{
+  if (!impl_ || !impl_->session)
+  {
+    return false;
+  }
+  return impl_->session->set_finger_positions_and_velocities(slave_id, positions, velocities, count);
+}
+
+auto BraincoHandApi::set_finger_speeds(
+  uint8_t slave_id, const int16_t * speeds, std::size_t count) -> bool
+{
+  if (!impl_ || !impl_->session)
+  {
+    return false;
+  }
+  return impl_->session->set_finger_speeds(slave_id, speeds, count);
+}
+
+auto BraincoHandApi::set_finger_currents(
+  uint8_t slave_id, const int16_t * currents, std::size_t count) -> bool
+{
+  if (!impl_ || !impl_->session)
+  {
+    return false;
+  }
+  return impl_->session->set_finger_currents(slave_id, currents, count);
+}
+
+auto BraincoHandApi::set_finger_pwms(
+  uint8_t slave_id, const int16_t * pwms, std::size_t count) -> bool
+{
+  if (!impl_ || !impl_->session)
+  {
+    return false;
+  }
+  return impl_->session->set_finger_pwms(slave_id, pwms, count);
+}
+
+auto BraincoHandApi::set_thumb_aux_lock_current(uint8_t slave_id, uint16_t current_ma) -> bool
+{
+  if (!impl_ || !impl_->session)
+  {
+    return false;
+  }
+  return impl_->session->set_thumb_aux_lock_current(slave_id, current_ma);
+}
+
+auto BraincoHandApi::set_thumb_aux_max_current(uint8_t slave_id, uint16_t current_ma) -> bool
+{
+  if (!impl_ || !impl_->session)
+  {
+    return false;
+  }
+  return impl_->session->set_thumb_aux_max_current(slave_id, current_ma);
+}
+
+auto BraincoHandApi::set_thumb_aux_protected_current(uint8_t slave_id, uint16_t current_ma) -> bool
+{
+  if (!impl_ || !impl_->session)
+  {
+    return false;
+  }
+  return impl_->session->set_thumb_aux_protected_current(slave_id, current_ma);
+}
+
+auto BraincoHandApi::set_thumb_aux_max_speed(uint8_t slave_id, uint16_t speed_deg_s) -> bool
+{
+  if (!impl_ || !impl_->session)
+  {
+    return false;
+  }
+  return impl_->session->set_thumb_aux_max_speed(slave_id, speed_deg_s);
+}
+
 auto BraincoHandApi::resolved_connection() const -> std::optional<ConnectionInfo>
 {
   if (!impl_ || !impl_->session)
@@ -165,4 +286,4 @@ auto BraincoHandApi::resolved_connection() const -> std::optional<ConnectionInfo
   return impl_->session->connection_info();
 }
 
-}  // namespace brainco_hand_driver
+}  // namespace revo2_driver

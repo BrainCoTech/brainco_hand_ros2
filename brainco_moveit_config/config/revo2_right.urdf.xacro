@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="revo2_right">
     <xacro:arg name="initial_positions_file" default="revo2_right_initial_positions.yaml" />
+    <xacro:arg name="use_real_hardware" default="false" />
+    <xacro:arg name="protocol_config_file" default="" />
 
     <!-- World link -->
     <link name="world"/>
@@ -17,8 +19,18 @@
     </joint>
 
     <!-- Import ros2_control configuration -->
-    <xacro:include filename="revo2_right.ros2_control.xacro" />
-    <xacro:revo2_right_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+    <xacro:unless value="$(arg use_real_hardware)">
+        <xacro:include filename="revo2_right.ros2_control.xacro" />
+        <xacro:revo2_right_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)" />
+    </xacro:unless>
+    <xacro:if value="$(arg use_real_hardware)">
+        <xacro:include filename="$(find revo2_driver)/config/revo2.ros2_control.xacro" />
+        <xacro:property name="protocol_config" value="$(arg protocol_config_file)" />
+        <xacro:property name="driver_config" value="$(find revo2_driver)/config" />
+        <xacro:revo2_ros2_control name="revo2_right_hardware_interface" hand_side="right"
+            initial_positions_file="$(arg initial_positions_file)"
+            protocol_config_file="${protocol_config or driver_config + '/protocol_modbus_right.yaml'}" />
+    </xacro:if>
 
 </robot>
 

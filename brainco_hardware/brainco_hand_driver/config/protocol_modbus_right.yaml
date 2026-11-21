@@ -4,27 +4,62 @@ hardware:
   # 如果 auto_detect 为 false，则使用此值作为目标 slave_id
   slave_id: 127
   log_level: info
-  ensure_physical_mode: true
-  ctrl_param_duration_ms: 55
+  sdk_file_logging: false  # SDK logs/revo2_<timestamp>.log; restart required
+  # 位置控制走"物理量语义"：ROS 指令是关节角(rad)。驱动在 on_activate 时用
+  # stark_get_finger_max/min_position 逐指读取物理角度范围(度)，write() 把
+  # rad clamp 到该范围后按"逐指范围 -> 0~1000"映射下发；read() 反向映射回 rad。
+  # SDK 位置 SET/GET 接口固定只吃 0~1000（见 stark-sdk.h：position always uses
+  # the 0~1000 range），所以 finger_unit_mode 对位置无影响，保持 normalized 让
+  # 速度 SET 走 0~1000 分支。逐指范围由 SDK 提供，因此下面的 position_*_scale /
+  # position_device_* 不再决定位置量程，仅作 device 边界与读范围失败时的回退。
+  finger_unit_mode: normalized
+  ensure_physical_mode: false
+  ctrl_param_duration_ms: 10
+  # 位置量程改由 SDK 逐指范围决定；保留这两个 scale 仅用于 SDK 读范围失败时的回退。
   position_command_scale: 572.9577951308232
   position_state_scale: 0.0017453292519943296
   velocity_state_scale: 0.0017453292519943296
+  velocity_command_scale: 572.9577951308232
+  velocity_device_min: -1000.0
+  velocity_device_max: 1000.0
   position_device_min: 0.0
   position_device_max: 1000.0
+  # Physical mode scale overrides are used only when finger_unit_mode: physical.
+  # Do not enable them with the SDK C API: writes/reads stay 0-1000. A command
+  # scale of 57.3 under-commands by 10x (1.4 rad → 80 instead of 802).
+  # physical_position_command_scale: 57.29577951308232
+  # physical_position_state_scale: 0.017453292519943295
+  # physical_position_device_min: 0.0
+  # physical_position_device_max: 100.0
+  # physical_velocity_command_scale: 57.29577951308232
+  # physical_velocity_state_scale: 0.017453292519943295
+  # physical_velocity_device_min: -130.0
+  # physical_velocity_device_max: 130.0
+  # Revo2 ThumbAux / thumb_metacarpal_joint speed-mode diagnostic.
+  # SDK range: 100~500 mA. Remove or set to 0 to leave firmware default unchanged.
+  # thumb_aux_lock_current: 200
+  # 速度百分比参数 (0-100%)，用于调整执行速度
+  # 例如：50.0 表示以 50% 的速度执行，100.0 表示全速
+  velocity_percentage: 100.0
+  # 打开后按 debug_write_interval 周期打印 driver 最终写给 SDK 的位置/速度数值
+  debug_write_commands: false
+  debug_write_interval: 0.5
   # 当 auto_detect 为 true 时，port 和 baudrate 会被忽略，使用自动检测到的值
   # 当 auto_detect 为 false 时，使用指定的 port 和 baudrate
-  port: /dev/ttyUSB0
+  port: /dev/revo2_hand_right
   baudrate: 460800
   # 启用自动检测：自动扫描所有可用串口，找到 Revo2 设备
-  auto_detect: true
-  # 快速检测模式：true 为快速模式（推荐），false 为完整检测（更慢但更准确）
+  auto_detect: false
+  # 快速检测模式：true 为快速模式，false 为完整检测（更慢但对部分 Revo2/USB 转串口更稳）
   auto_detect_quick: true
   # 自动检测端口提示：如果指定，只在此端口范围内检测（例如 "/dev/ttyUSB" 会检测所有 ttyUSB*）
   # 留空则检测所有可用串口
   # 对于双手配置，建议为左手和右手指定不同的端口提示，避免冲突
   # 例如：左手使用 "/dev/ttyUSB0"，右手使用 "/dev/ttyUSB2"
   auto_detect_port: ""
+  # 启动时串口/udev 可能比 ros2_control 稍晚就绪；失败后自动重试，避免手动重启硬件驱动
+  connection_retry_attempts: 20
+  connection_retry_interval_ms: 500
   # 如果自动检测有问题，可以禁用自动检测并手动指定端口：
   # auto_detect: false
-  # port: /dev/ttyUSB2  # 根据实际设备端口修改
-
+  # port: /dev/ttyUSB0  # 根据实际设备端口修改

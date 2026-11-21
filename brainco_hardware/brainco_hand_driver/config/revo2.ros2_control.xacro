@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="revo2-optional-param" params="config key">
+    <xacro:if value="${key in config}">
+      <param name="${key}">${config[key]}</param>
+    </xacro:if>
+  </xacro:macro>
+
+  <xacro:macro name="revo2-hw-joint" params="joint_name initial_value tactile:=false">
+    <joint name="${joint_name}">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <state_interface name="position">
+        <param name="initial_value">${initial_value}</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+      <!-- SDK motor currents: exposed for runtime diagnostics/monitoring -->
+      <state_interface name="current"/>
+      <!-- Hand status from SDK state code / 灵巧手状态码 0=idle, 1=running, 2=stalled, 3=turbo -->
+      <state_interface name="motor_state"/>
+      <xacro:if value="${tactile}">
+        <state_interface name="tactile_normal_force"/>
+        <state_interface name="tactile_tangential_force"/>
+        <state_interface name="tactile_tangential_direction"/>
+        <state_interface name="tactile_self_proximity"/>
+        <state_interface name="tactile_status"/>
+      </xacro:if>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro
+    name="revo2_ros2_control"
+    params="name hand_side initial_positions_file protocol_config_file read_touch_status:=true touch_read_hz:=20.0 if_sim:=false">
+    <xacro:property
+      name="hand_prefix"
+      value="${hand_side}"/>
+    <xacro:property
+      name="initial_positions"
+      value="${xacro.load_yaml(initial_positions_file)['initial_positions']}"/>
+    <xacro:property
+      name="hardware_config"
+      value="${xacro.load_yaml(protocol_config_file)['hardware']}"/>
+
+    <ros2_control name="${name}" type="system">
+      <hardware>
+        <xacro:if value="${if_sim}">
+          <plugin>mock_components/GenericSystem</plugin>
+        </xacro:if>
+        <xacro:unless value="${if_sim}">
+          <plugin>revo2_driver/BraincoHandHardware</plugin>
+          <param name="protocol">${hardware_config['protocol']}</param>
+          <param name="slave_id">${hardware_config['slave_id']}</param>
+          <param name="log_level">${hardware_config['log_level']}</param>
+          <xacro:revo2-optional-param config="${hardware_config}" key="sdk_file_logging" />
+          <param name="ctrl_param_duration_ms">${hardware_config['ctrl_param_duration_ms']}</param>
+          <param name="read_touch_status">${read_touch_status}</param>
+          <param name="touch_read_hz">${touch_read_hz}</param>
+          <param name="position_command_scale">${hardware_config['position_command_scale']}</param>
+          <param name="position_state_scale">${hardware_config['position_state_scale']}</param>
+          <param name="velocity_state_scale">${hardware_config['velocity_state_scale']}</param>
+          <xacro:revo2-optional-param config="${hardware_config}" key="velocity_command_scale" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="velocity_device_min" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="velocity_device_max" />
+          <param name="position_device_min">${hardware_config['position_device_min']}</param>
+          <param name="position_device_max">${hardware_config['position_device_max']}</param>
+          <xacro:revo2-optional-param config="${hardware_config}" key="finger_unit_mode" />
+          <param name="ensure_physical_mode">${hardware_config['ensure_physical_mode']}</param>
+          <xacro:revo2-optional-param config="${hardware_config}" key="physical_position_command_scale" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="physical_position_state_scale" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="physical_velocity_state_scale" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="physical_velocity_command_scale" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="physical_position_device_min" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="physical_position_device_max" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="physical_velocity_device_min" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="physical_velocity_device_max" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="velocity_percentage" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="debug_write_commands" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="debug_write_interval" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="thumb_aux_lock_current" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="thumb_aux_max_current" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="thumb_aux_protected_current" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="thumb_aux_max_speed" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="port" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="baudrate" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="auto_detect" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="auto_detect_quick" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="auto_detect_port" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="connection_retry_attempts" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="connection_retry_interval_ms" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_device_type" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_card_index" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_channel_index" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_clock_hz" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_rx_wait_time" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_rx_buffer_size" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_master_id" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_arbitration_sjw" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_arbitration_brp" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_arbitration_tseg1" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_arbitration_tseg2" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_arbitration_smp" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_data_sjw" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_data_brp" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_data_tseg1" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_data_tseg2" />
+          <xacro:revo2-optional-param config="${hardware_config}" key="can_data_smp" />
+        </xacro:unless>
+      </hardware>
+
+      <xacro:revo2-hw-joint
+        joint_name="${hand_prefix}_thumb_proximal_joint"
+        initial_value="${initial_positions[hand_prefix + '_thumb_proximal_joint']}"
+        tactile="true" />
+      <xacro:revo2-hw-joint
+        joint_name="${hand_prefix}_thumb_metacarpal_joint"
+        initial_value="${initial_positions[hand_prefix + '_thumb_metacarpal_joint']}" />
+      <xacro:revo2-hw-joint
+        joint_name="${hand_prefix}_index_proximal_joint"
+        initial_value="${initial_positions[hand_prefix + '_index_proximal_joint']}"
+        tactile="true" />
+      <xacro:revo2-hw-joint
+        joint_name="${hand_prefix}_middle_proximal_joint"
+        initial_value="${initial_positions[hand_prefix + '_middle_proximal_joint']}"
+        tactile="true" />
+      <xacro:revo2-hw-joint
+        joint_name="${hand_prefix}_ring_proximal_joint"
+        initial_value="${initial_positions[hand_prefix + '_ring_proximal_joint']}"
+        tactile="true" />
+      <xacro:revo2-hw-joint
+        joint_name="${hand_prefix}_pinky_proximal_joint"
+        initial_value="${initial_positions[hand_prefix + '_pinky_proximal_joint']}"
+        tactile="true" />
+    </ros2_control>
+  </xacro:macro>
+</robot>

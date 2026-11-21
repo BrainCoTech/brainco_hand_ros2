@@ -29,11 +29,11 @@ def build_xacro_command_for_context(hand_type_value: str, protocol_config_path: 
         PathJoinSubstitution([FindExecutable(name="xacro")]),
         " ",
         PathJoinSubstitution([
-            FindPackageShare("brainco_hand_driver"),
+            FindPackageShare("brainco_moveit_config"),
             f"config/revo2_{hand_type_value}.urdf.xacro",
         ]),
     ]
-    command.extend([" ", f"protocol_config_file:={protocol_config_path}"])
+    command.extend([" use_real_hardware:=true ", f"protocol_config_file:={protocol_config_path}"])
     return command
 
 
@@ -45,12 +45,12 @@ def build_xacro_command(
         PathJoinSubstitution([FindExecutable(name="xacro")]),
         " ",
         PathJoinSubstitution([
-            FindPackageShare("brainco_hand_driver"),
+            FindPackageShare("brainco_moveit_config"),
             "config",
             ["revo2_", hand_type_substitution, ".urdf.xacro"],
         ]),
     ]
-    command.extend([" ", "protocol_config_file:=", protocol_config_substitution])
+    command.extend([" use_real_hardware:=true ", "protocol_config_file:=", protocol_config_substitution])
     return command
 
 
@@ -80,7 +80,7 @@ def generate_moveit_nodes(context, *args, **kwargs):  # noqa: D401
                 else "protocol_modbus_right.yaml"
             )
         protocol_config_path = str(
-            Path(get_package_share_directory("brainco_hand_driver")) / "config" / filename
+            Path(get_package_share_directory("revo2_driver")) / "config" / filename
         )
 
     if hand_type_value == "left":
@@ -200,7 +200,7 @@ def generate_launch_description():  # noqa: D401
     protocol_config_override = LaunchConfiguration("protocol_config_file")
 
     protocol_config_default = PathJoinSubstitution([
-        FindPackageShare("brainco_hand_driver"),
+        FindPackageShare("revo2_driver"),
         "config",
         PythonExpression([
             "'protocol_canfd_left.yaml' if ('",

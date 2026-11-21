@@ -1,0 +1,153 @@
+# Unified controller template for a single revo2 hand.
+# Launch code replaces:
+#   HAND_PREFIX -> left | right
+#   UPDATE_RATE -> controller manager update rate
+/**/controller_manager:
+  ros__parameters:
+    update_rate: UPDATE_RATE  # Hz
+
+    load_on_configure:
+      - revo2_joint_state
+      - joint_forward_pos_controller
+      - joint_forward_vel_controller
+      - revo2_pid_controller
+      - HAND_PREFIX_revo2_hand_controller
+
+    activate_on_configure:
+      - revo2_joint_state
+      - joint_forward_pos_controller
+
+    revo2_joint_state:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    joint_forward_pos_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    joint_forward_vel_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    revo2_pid_controller:
+      type: revo2_driver/Revo2PidController
+
+    HAND_PREFIX_revo2_hand_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# B-compatible trajectory controller name, with the unified six-joint ordering.
+/**/HAND_PREFIX_revo2_hand_controller:
+  ros__parameters:
+    joints:
+      - HAND_PREFIX_thumb_proximal_joint
+      - HAND_PREFIX_thumb_metacarpal_joint
+      - HAND_PREFIX_index_proximal_joint
+      - HAND_PREFIX_middle_proximal_joint
+      - HAND_PREFIX_ring_proximal_joint
+      - HAND_PREFIX_pinky_proximal_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+
+/**/revo2_joint_state:
+  ros__parameters:
+    use_local_topics: true
+    publish_dynamic_joint_states: true
+
+/**/joint_forward_pos_controller:
+  ros__parameters:
+    joints:
+      - HAND_PREFIX_thumb_proximal_joint
+      - HAND_PREFIX_thumb_metacarpal_joint
+      - HAND_PREFIX_index_proximal_joint
+      - HAND_PREFIX_middle_proximal_joint
+      - HAND_PREFIX_ring_proximal_joint
+      - HAND_PREFIX_pinky_proximal_joint
+
+    interface_name: position
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+
+/**/joint_forward_vel_controller:
+  ros__parameters:
+    joints:
+      - HAND_PREFIX_thumb_proximal_joint
+      - HAND_PREFIX_thumb_metacarpal_joint
+      - HAND_PREFIX_index_proximal_joint
+      - HAND_PREFIX_middle_proximal_joint
+      - HAND_PREFIX_ring_proximal_joint
+      - HAND_PREFIX_pinky_proximal_joint
+
+    interface_name: velocity
+
+    command_interfaces:
+      - velocity
+
+    state_interfaces:
+      - position
+      - velocity
+
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+
+/**/revo2_pid_controller:
+  ros__parameters:
+    joints:
+      - HAND_PREFIX_thumb_proximal_joint
+      - HAND_PREFIX_thumb_metacarpal_joint
+      - HAND_PREFIX_index_proximal_joint
+      - HAND_PREFIX_middle_proximal_joint
+      - HAND_PREFIX_ring_proximal_joint
+      - HAND_PREFIX_pinky_proximal_joint
+
+    target_topic: /revo2_HAND_PREFIX/revo2_pid_controller/target_joint_states
+    target_timeout: 0.3
+
+    joint_lower_limits: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    # Index, middle, ring and pinky: 81 degrees in radians.
+    joint_upper_limits: [1.0472, 1.5184, 1.413716694, 1.413716694, 1.413716694, 1.413716694]
+
+    target_filter:
+      alpha: 0.75
+      fast_alpha: 1.0
+      fast_threshold: 0.04
+
+    target_velocity_feedforward:
+      gain: 0.4
+      alpha: 0.4
+      max: 1.0
+
+    pd_velocity:
+      velocity_kp: 6.7
+      velocity_ki: 0.25
+      integral_max: 0.25
+      velocity_kd: 0.8
+      derivative_alpha: 0.25
+      velocity_deadband: 0.013962634
+      velocity_max: 2.25
+      velocity_slew_rate: 1.0
+
+      thumb_velocity_deadband: 0.020943951
+      thumb_velocity_min: 0.0
+      thumb_velocity_kp_scale: 2.4
+      thumb_velocity_brake_zone: 0.209439510
+      thumb_velocity_brake_max: 0.628318531
+
+      ring_velocity_deadband: 0.020943951
+      ring_velocity_min: 0.0
+      ring_velocity_kp_scale: 1.5
+      four_finger_extension_velocity_scale: 1.5
+      four_finger_extension_joints: [2, 3, 4, 5]
+
+    feedback:
+      position_scales: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      position_offsets: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

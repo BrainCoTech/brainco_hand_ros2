@@ -52,7 +52,7 @@ BrainCo Hand ROS2 是一个完整的 ROS 2 软件包集合，为 BrainCo Revo2 �
 brainco_hand_ros2/
 ├── revo2_description/                    # Revo2 灵巧手 URDF 描述包
 ├── brainco_hardware/                     # 硬件驱动包
-│   ├── brainco_hand_driver/            # Revo2 灵巧手硬件驱动
+│   ├── brainco_hand_driver/            # Revo2 灵巧手硬件驱动（ROS 包 `revo2_driver`）
 │   └── stark_ethercat/brainco_hand_ethercat_driver/                  # EtherCAT 驱动
 ├── brainco_gazebo/                      # Gazebo 仿真包
 ├── brainco_moveit_config/               # MoveIt 配置包
@@ -72,7 +72,7 @@ brainco_hand_ros2/
 - RViz 可视化支持
 - 完整的关节和链接定义
 
-模型包由 `vcs import` 根据 `brainco_hand.repos` 导入。模型清单和 RViz 用法见 [Revo 2 模型文档](https://github.com/BrainCoTech/revo2_description/blob/main/README_CN.md)。
+模型包由 `vcs import` 根据 `brainco_hand.repos` 导入。模型清单和 RViz 用法见 [Revo 2 模型文档](https://github.com/BrainCoTech/revo2_description/blob/92cc697c7fa691db59404ce52344f3969a5ef7a6/README_CN.md)。
 
 ### 2. brainco_hardware
 
@@ -156,7 +156,7 @@ git clone https://github.com/BrainCoTech/brainco_hand_ros2.git
 cd brainco_hand_ros2
 
 # 使用 vcs 工具克隆依赖仓库
-vcs import . < brainco_hand.repos --recursive --skip-existing
+vcs import . < brainco_hand.repos --recursive
 ```
 
 **说明**：如果您的系统没有安装 `vcs` 工具，请先安装：
@@ -186,32 +186,32 @@ rosdep install --from-paths src --ignore-src --rosdistro $ROS_DISTRO -y
 构建前，请在目标 Linux 机器下载固定版本的 Stark SDK。共享库不纳入 Git，脚本会选择 x86_64 或 ARM64 包；需要安装 `curl` 或 `wget`、`unzip` 和 `file`。
 
 ```bash
-bash <workspace>/src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
+bash src/brainco_hand_ros2/brainco_hardware/brainco_hand_driver/scripts/download_sdk.sh
 ```
 
 **方式一：使用编译脚本（推荐，简洁方便）**
 
 ```bash
 # 默认编译（不启用 CAN FD 和 EtherCAT）
-./build.sh
+bash src/brainco_hand_ros2/build.sh
 
 # 启用 CAN FD 支持
-./build.sh --canfd
+bash src/brainco_hand_ros2/build.sh --canfd
 
 # 启用 EtherCAT 支持
-./build.sh --ethercat
+bash src/brainco_hand_ros2/build.sh --ethercat
 
 # 同时启用 CAN FD 和 EtherCAT
-./build.sh --canfd --ethercat
+bash src/brainco_hand_ros2/build.sh --canfd --ethercat
 
 # Release 模式编译
-./build.sh --release
+bash src/brainco_hand_ros2/build.sh --release
 
 # Release 模式，启用所有功能
-./build.sh --release --canfd --ethercat
+bash src/brainco_hand_ros2/build.sh --release --canfd --ethercat
 
 # 查看帮助信息
-./build.sh --help
+bash src/brainco_hand_ros2/build.sh --help
 ```
 
 **方式二：使用 colcon 命令**
@@ -226,8 +226,8 @@ colcon build --symlink-install --cmake-args -DENABLE_CANFD=ON --packages-ignore 
 # 包含 EtherCAT 驱动包
 colcon build --symlink-install
 
-# 只需要 brainco_hand_driver 驱动包（默认Modbus）
-colcon build --packages-up-to brainco_hand_driver --symlink-install
+# 只编译驱动及其模型依赖（默认 Modbus）
+colcon build --packages-up-to revo2_driver --symlink-install
 ```
 
 **注意事项**：
@@ -237,18 +237,24 @@ colcon build --packages-up-to brainco_hand_driver --symlink-install
 - 默认配置（不启用 CAN FD 和 EtherCAT）可以正常使用 Modbus 协议
 - 如果需要使用 CAN FD 或 EtherCAT 协议，请在编译时通过相应参数启用
 
+编译后，在工作空间根目录执行：
+
+```bash
+source install/setup.bash
+```
+
 ## 使用场景
 
 ### 场景 1：硬件控制（真实灵巧手）
 
-如果您有真实的 Revo2 灵巧手硬件，可以使用 `brainco_hand_driver` 进行控制：
+如果您有真实的 Revo2 灵巧手硬件，可以使用 `revo2_driver` 进行控制：
 
 ```bash
 # 启动右手系统（Modbus 模式） 
-ros2 launch brainco_hand_driver revo2_system.launch.py hand_type:=right
+ros2 launch revo2_driver revo2_system.launch.py hand_side:=right
 
 # 启动双手系统（Modbus 模式） 
-ros2 launch brainco_hand_driver dual_revo2_system.launch.py
+ros2 launch revo2_driver dual_revo2_system.launch.py
 
 # 启动右手系统（带 MoveIt）
 ros2 launch brainco_moveit_config revo2_real_moveit.launch.py hand_type:=right
@@ -328,7 +334,7 @@ ros2 launch rm65_with_revo2_right_moveit_config rm65_with_revo2_right_moveit.lau
 #### 右手张开手掌
 
 ```bash
-ros2 topic pub --once /right_revo2_hand_controller/joint_trajectory \
+ros2 topic pub --once revo_right/right_revo2_hand_controller/joint_trajectory \
   trajectory_msgs/msg/JointTrajectory \
   '{
     joint_names: [
@@ -349,7 +355,7 @@ ros2 topic pub --once /right_revo2_hand_controller/joint_trajectory \
 #### 右手握拳
 
 ```bash
-ros2 topic pub --once /right_revo2_hand_controller/joint_trajectory \
+ros2 topic pub --once revo_right/right_revo2_hand_controller/joint_trajectory \
   trajectory_msgs/msg/JointTrajectory \
   '{
     joint_names: [
